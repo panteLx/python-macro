@@ -1,0 +1,15 @@
+{
+  "name": "[PREBUILT] Battlefield 6 Space Bar AFK",
+  "description": "Space Bar AFK Macro for Battlefield 6. Portal Code: YRV4A",
+  "actions": [
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    }
+  ],
+  "loop": true
+}

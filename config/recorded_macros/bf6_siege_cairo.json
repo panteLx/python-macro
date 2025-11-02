@@ -1,0 +1,57 @@
+{
+  "name": "[PREBUILT] Battlefield 6 Siege of Cairo AFK",
+  "description": "Siege of Cairo AFK Macro for Battlefield 6 that automates capturing objectives. Portal Code: YVNDS - Tutorial: https://youtu.be/LH_Gj87xodI?si=GJvNM4reqZoQxJ7f&t=161",
+  "actions": [
+    {
+      "type": "keyhold",
+      "key": "w",
+      "duration": 15.7
+    },
+    {
+      "type": "sleep",
+      "delay": 120
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 120
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keyhold",
+      "key": "s",
+      "duration": 16.11
+    },
+    {
+      "type": "sleep",
+      "delay": 120
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 120
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    }
+  ],
+  "loop": true
+}

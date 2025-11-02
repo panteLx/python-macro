@@ -1,0 +1,81 @@
+{
+  "name": "[PREBUILT] Battlefield 6 Liberation Peak AFK",
+  "description": "Liberation Peak AFK Macro for Battlefield 6 that automates capturing objectives. Portal Code: YWVXU - Tutorial: https://youtu.be/TTv9BSTzFTg?si=fdGpfcFno4Y9w3cI&t=61",
+  "actions": [
+    {
+      "type": "keyhold",
+      "key": "w",
+      "duration": 7
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keyhold",
+      "key": "s",
+      "duration": 7
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    }
+  ],
+  "loop": true
+}

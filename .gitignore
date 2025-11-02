@@ -67,7 +67,10 @@ venv.bak/
 
 # MacroManager specific
 logs/
-config/
+config/*
+!config/recorded_macros/
+config/recorded_macros/*
+!config/recorded_macros/bf6_*.json
 
 # Old structure (to be removed)
 app.py.old

@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://i.imgur.com/KHImMPw.png" alt="MacroManager Logo"/>
+</div>
+
 # MacroManager
 
 > A simple macro automation tool for games

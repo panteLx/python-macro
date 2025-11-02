@@ -175,6 +175,19 @@ def download_and_install_update(download_url: str, version: str) -> bool:
             items_to_update = ['src', 'main.py',
                                'requirements.txt', 'README.md', 'LICENSE']
 
+            # Define ignore patterns for copying
+            def ignore_patterns(directory, contents):
+                """Ignore logs and __pycache__ directories during copy."""
+                ignored = []
+                for item in contents:
+                    # Ignore logs directory and __pycache__
+                    if item in ['logs', '__pycache__']:
+                        ignored.append(item)
+                    # Also ignore .pyc files
+                    elif item.endswith('.pyc'):
+                        ignored.append(item)
+                return ignored
+
             # Backup and update each item
             for item_name in items_to_update:
                 source_item = source_dir / item_name
@@ -194,14 +207,15 @@ def download_and_install_update(download_url: str, version: str) -> bool:
                             backup_path.unlink()
 
                     if dest_item.is_dir():
-                        shutil.copytree(dest_item, backup_path)
+                        shutil.copytree(dest_item, backup_path,
+                                        ignore=ignore_patterns)
                     else:
                         shutil.copy2(dest_item, backup_path)
 
                     logger.info(f"Backed up {item_name}")
 
-                # Remove old item
-                if dest_item.exists():
+                # Remove old item (except for src which we handle specially)
+                if dest_item.exists() and item_name != 'src':
                     if dest_item.is_dir():
                         shutil.rmtree(dest_item)
                     else:
@@ -209,7 +223,13 @@ def download_and_install_update(download_url: str, version: str) -> bool:
 
                 # Copy new item
                 if source_item.is_dir():
-                    shutil.copytree(source_item, dest_item)
+                    if item_name == 'src':
+                        # For src, we need to preserve logs directory
+                        # Copy everything except logs
+                        shutil.copytree(
+                            source_item, dest_item, ignore=ignore_patterns, dirs_exist_ok=True)
+                    else:
+                        shutil.copytree(source_item, dest_item)
                 else:
                     shutil.copy2(source_item, dest_item)
 

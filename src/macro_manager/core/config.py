@@ -18,8 +18,8 @@ class Config:
         "start_key": "f1",
         "stop_key": "f2",
         "log_level": "INFO",
-        "window_width": 700,
-        "window_height": 900,
+        "window_width": 1000,
+        "window_height": 800,
     }
 
     def __init__(self, config_dir: Optional[Path] = None):
@@ -31,7 +31,8 @@ class Config:
         """
         if config_dir is None:
             # Default to config directory in project root
-            self.config_dir = Path(__file__).parent.parent.parent.parent / "config"
+            self.config_dir = Path(
+                __file__).parent.parent.parent.parent / "config"
         else:
             self.config_dir = Path(config_dir)
 
@@ -48,14 +49,16 @@ class Config:
                     loaded_config = json.load(f)
                     # Merge with defaults to ensure all keys exist
                     self._config = {**self.DEFAULT_CONFIG, **loaded_config}
-                    logger.info(f"Configuration loaded from {self.config_file}")
+                    logger.info(
+                        f"Configuration loaded from {self.config_file}")
             else:
                 logger.info("No configuration file found, using defaults")
                 self._config = self.DEFAULT_CONFIG.copy()
                 self.save()  # Save default configuration
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse configuration file: {e}")
-            raise ConfigurationError(f"Invalid JSON in configuration file: {e}")
+            raise ConfigurationError(
+                f"Invalid JSON in configuration file: {e}")
         except Exception as e:
             logger.error(f"Failed to load configuration: {e}")
             raise ConfigurationError(f"Failed to load configuration: {e}")

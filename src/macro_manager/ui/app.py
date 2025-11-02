@@ -140,18 +140,30 @@ class MacroManagerApp:
             python = sys.executable
             script = sys.argv[0]
 
-            # Close the current application
-            self.root.destroy()
-
             # Restart using the batch file if on Windows
             if sys.platform == "win32":
                 batch_file = Path(
                     __file__).parent.parent.parent.parent / "start_macromanager.bat"
                 if batch_file.exists():
+                    # Close the current application first
+                    self.root.destroy()
+
+                    # Start the batch file
                     os.startfile(str(batch_file))
+
+                    # Exit the current process
+                    sys.exit(0)
                 else:
+                    # Close the current application
+                    self.root.destroy()
+
+                    # Restart using Python directly
                     os.execl(python, python, script, *sys.argv[1:])
             else:
+                # Close the current application
+                self.root.destroy()
+
+                # Restart using Python directly
                 os.execl(python, python, script, *sys.argv[1:])
 
         except Exception as e:

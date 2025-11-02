@@ -174,6 +174,31 @@ def reinstall_requirements(app_root: Path) -> bool:
         return False
 
 
+def safe_remove_tree(path: Path, ignore_errors: bool = False) -> bool:
+    """
+    Safely remove a directory tree, handling locked files.
+
+    Args:
+        path: Path to remove
+        ignore_errors: If True, continue even if some files can't be deleted
+
+    Returns:
+        True if completely successful, False if some files couldn't be deleted
+    """
+    def handle_remove_error(func, path, exc_info):
+        """Error handler for shutil.rmtree."""
+        logger.warning(f"Could not remove {path}: {exc_info[1]}")
+        if not ignore_errors:
+            raise
+
+    try:
+        shutil.rmtree(path, onerror=handle_remove_error)
+        return True
+    except Exception as e:
+        logger.error(f"Failed to remove {path}: {e}")
+        return False
+
+
 def download_and_install_update(download_url: str, version: str) -> bool:
     """
     Download and install an update.
@@ -261,20 +286,25 @@ def download_and_install_update(download_url: str, version: str) -> bool:
                     backup_path = app_root / f"{item_name}.backup"
                     if backup_path.exists():
                         if backup_path.is_dir():
-                            shutil.rmtree(backup_path)
+                            shutil.rmtree(backup_path, ignore_errors=True)
                         else:
                             backup_path.unlink()
 
-                    if dest_item.is_dir():
-                        shutil.copytree(dest_item, backup_path,
-                                        ignore=ignore_patterns)
+                    # Create backup (skip for src to avoid locked file issues)
+                    if item_name != 'src':
+                        if dest_item.is_dir():
+                            shutil.copytree(dest_item, backup_path,
+                                            ignore=ignore_patterns)
+                        else:
+                            shutil.copy2(dest_item, backup_path)
+                        logger.info(f"Backed up {item_name}")
                     else:
-                        shutil.copy2(dest_item, backup_path)
-
-                    logger.info(f"Backed up {item_name}")
+                        logger.info(
+                            f"Skipping backup of {item_name} (will be overlaid)")
 
                 # Completely remove old item before copying new one
-                if dest_item.exists():
+                # Special handling for 'src' directory to avoid locked log files
+                if dest_item.exists() and item_name != 'src':
                     if dest_item.is_dir():
                         logger.info(f"Removing old {item_name} directory...")
                         shutil.rmtree(dest_item)
@@ -284,8 +314,17 @@ def download_and_install_update(download_url: str, version: str) -> bool:
 
                 # Copy new item
                 if source_item.is_dir():
-                    shutil.copytree(source_item, dest_item,
-                                    ignore=ignore_patterns)
+                    if item_name == 'src':
+                        # For src directory, use dirs_exist_ok to overlay files
+                        # This avoids issues with locked log files
+                        logger.info(
+                            f"Updating {item_name} directory (preserving logs)...")
+                        shutil.copytree(source_item, dest_item,
+                                        ignore=ignore_patterns,
+                                        dirs_exist_ok=True)
+                    else:
+                        shutil.copytree(source_item, dest_item,
+                                        ignore=ignore_patterns)
                 else:
                     shutil.copy2(source_item, dest_item)
 

@@ -2,13 +2,36 @@
 
 import logging
 import time
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 import win32gui
 
 from macro_manager.core.exceptions import WindowNotFoundError
+from macro_manager.utils import direct_keys
 
 logger = logging.getLogger(__name__)
+
+# Build key mapping once at module load time
+_KEY_MAP: Dict[str, int] = {}
+for attr_name in dir(direct_keys):
+    if attr_name.startswith('DIK_'):
+        # Extract key name (e.g., 'DIK_W' -> 'w')
+        key_name = attr_name[4:].lower()
+        scan_code = getattr(direct_keys, attr_name)
+        _KEY_MAP[key_name] = scan_code
+
+        # Add common aliases
+        if key_name == 'return':
+            _KEY_MAP['enter'] = scan_code
+        elif key_name == 'escape':
+            _KEY_MAP['esc'] = scan_code
+        elif key_name in ('lshift', 'rshift'):
+            _KEY_MAP['shift'] = scan_code
+        elif key_name in ('lcontrol', 'rcontrol'):
+            _KEY_MAP['ctrl'] = scan_code
+            _KEY_MAP['control'] = scan_code
+        elif key_name in ('lalt', 'ralt'):
+            _KEY_MAP['alt'] = scan_code
 
 
 def find_game_window(window_titles: Optional[List[str]] = None) -> Optional[int]:
@@ -110,37 +133,14 @@ def send_key_to_window(
         WindowNotFoundError: If the window is invalid.
         ValueError: If the key is not supported.
     """
-    from macro_manager.utils import direct_keys
-
     if not hwnd or not win32gui.IsWindow(hwnd):
         raise WindowNotFoundError(f"Invalid window handle: {hwnd}")
 
     # Normalize key name
     key_lower = key.lower()
 
-    # Build key map dynamically from direct_keys module
-    key_map = {}
-    for attr_name in dir(direct_keys):
-        if attr_name.startswith('DIK_'):
-            # Extract key name (e.g., 'DIK_W' -> 'w')
-            key_name = attr_name[4:].lower()
-            scan_code = getattr(direct_keys, attr_name)
-            key_map[key_name] = scan_code
-
-            # Add common aliases
-            if key_name == 'return':
-                key_map['enter'] = scan_code
-            elif key_name == 'escape':
-                key_map['esc'] = scan_code
-            elif key_name == 'lshift' or key_name == 'rshift':
-                key_map['shift'] = scan_code
-            elif key_name == 'lcontrol' or key_name == 'rcontrol':
-                key_map['ctrl'] = scan_code
-                key_map['control'] = scan_code
-            elif key_name == 'lalt' or key_name == 'ralt':
-                key_map['alt'] = scan_code
-
-    scan_code = key_map.get(key_lower)
+    # Get scan code from pre-built map
+    scan_code = _KEY_MAP.get(key_lower)
     if not scan_code:
         raise ValueError(
             f"Unsupported key: {key}. Try using standard key names (a-z, 0-9, f1-f12, space, shift, ctrl, alt, etc.)")

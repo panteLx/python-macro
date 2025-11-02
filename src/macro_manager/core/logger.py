@@ -45,15 +45,3 @@ def setup_logging(
         logger.addHandler(file_handler)
 
     logger.info(f"Logging configured with level {log_level}")
-
-
-def get_logger(name: str) -> logging.Logger:
-    """Get a logger instance.
-
-    Args:
-        name: Name of the logger (typically __name__).
-
-    Returns:
-        Configured logger instance.
-    """
-    return logging.getLogger(f"macro_manager.{name}")

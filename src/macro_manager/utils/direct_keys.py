@@ -198,15 +198,3 @@ def release_key(scan_code: int) -> None:
     )
     x = Input(ctypes.c_ulong(1), ii_)
     SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
-
-
-def hold_key(scan_code: int, duration: float) -> None:
-    """Hold a key for a specified duration.
-
-    Args:
-        scan_code: DirectInput scan code of the key to hold.
-        duration: Time to hold the key in seconds.
-    """
-    press_key(scan_code)
-    time.sleep(duration)
-    release_key(scan_code)

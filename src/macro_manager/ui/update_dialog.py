@@ -5,6 +5,8 @@ import tkinter as tk
 from tkinter import scrolledtext, messagebox
 from typing import Callable, Optional
 
+from macro_manager.ui.theme import COLORS
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,20 +32,8 @@ class UpdateDialog:
         self.on_skip = on_skip
         self.result = False
 
-        # Color scheme (matching main window)
-        self.colors = {
-            'bg_dark': '#1e1e1e',
-            'bg_medium': '#2d2d2d',
-            'bg_light': '#3e3e3e',
-            'fg_primary': '#ffffff',
-            'fg_secondary': '#b0b0b0',
-            'accent': '#007acc',
-            'accent_hover': '#005a9e',
-            'success': '#4ec9b0',
-            'warning': '#ce9178',
-            'error': '#f48771',
-            'border': '#555555'
-        }
+        # Use centralized color scheme
+        self.colors = COLORS
 
         # Create dialog window
         self.dialog = tk.Toplevel(parent)
@@ -205,22 +195,13 @@ def show_update_progress(parent: tk.Tk) -> tk.Toplevel:
     Returns:
         Progress dialog window
     """
-    # Color scheme
-    colors = {
-        'bg_dark': '#1e1e1e',
-        'bg_medium': '#2d2d2d',
-        'fg_primary': '#ffffff',
-        'fg_secondary': '#b0b0b0',
-        'accent': '#007acc',
-    }
-
     progress_dialog = tk.Toplevel(parent)
     progress_dialog.title("Installing Update")
     progress_dialog.geometry("500x250")
     progress_dialog.resizable(False, False)
     progress_dialog.transient(parent)
     progress_dialog.grab_set()
-    progress_dialog.configure(bg=colors['bg_dark'])
+    progress_dialog.configure(bg=COLORS['bg_dark'])
 
     # Center the dialog
     progress_dialog.update_idletasks()
@@ -233,7 +214,7 @@ def show_update_progress(parent: tk.Tk) -> tk.Toplevel:
 
     # Content frame
     content_frame = tk.Frame(progress_dialog, padx=35,
-                             pady=35, bg=colors['bg_dark'])
+                             pady=35, bg=COLORS['bg_dark'])
     content_frame.pack(fill=tk.BOTH, expand=True)
 
     # Icon/spinner label
@@ -241,8 +222,8 @@ def show_update_progress(parent: tk.Tk) -> tk.Toplevel:
         content_frame,
         text="⏳",
         font=('Segoe UI', 40),
-        bg=colors['bg_dark'],
-        fg=colors['accent']
+        bg=COLORS['bg_dark'],
+        fg=COLORS['accent']
     )
     icon_label.pack(pady=(0, 15))
 
@@ -251,8 +232,8 @@ def show_update_progress(parent: tk.Tk) -> tk.Toplevel:
         content_frame,
         text="Downloading and installing update...\nPlease wait, this may take a minute.",
         font=('Segoe UI', 10),
-        bg=colors['bg_dark'],
-        fg=colors['fg_primary'],
+        bg=COLORS['bg_dark'],
+        fg=COLORS['fg_primary'],
         justify=tk.CENTER
     )
     status_label.pack()
@@ -277,21 +258,16 @@ def show_update_success(parent: tk.Tk):
     )
 
 
-def show_update_error(parent: tk.Tk, error_msg: str = ""):
+def show_update_error(parent: tk.Tk):
     """
     Show error message if update fails.
 
     Args:
         parent: Parent window
-        error_msg: Optional error message
     """
-    message = "Failed to install the update."
-    if error_msg:
-        message += f"\n\nError: {error_msg}"
-    message += "\n\nPlease try again later or download manually from GitHub."
-
     messagebox.showerror(
         "Update Failed",
-        message,
+        "Failed to install the update.\n\n"
+        "Please try again later or download manually from GitHub.",
         parent=parent
     )

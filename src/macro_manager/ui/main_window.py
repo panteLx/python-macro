@@ -24,6 +24,7 @@ from macro_manager.macros import (
 from macro_manager.ui.key_binding_dialog import KeyBindingDialog
 from macro_manager.ui.macro_recording_dialog import MacroRecordingDialog
 from macro_manager.ui.stdout_redirector import StdoutRedirector
+from macro_manager.ui.theme import COLORS
 from macro_manager.utils.window_utils import find_game_window
 from macro_manager.utils.auto_updater import get_current_version
 
@@ -60,6 +61,9 @@ class MainWindow:
         self.root.resizable(True, True)
         self.root.minsize(900, 550)
 
+        # Store colors from centralized theme
+        self.colors = COLORS
+
         # Apply modern dark theme
         self._apply_dark_theme()
 
@@ -79,21 +83,6 @@ class MainWindow:
 
     def _apply_dark_theme(self) -> None:
         """Apply modern dark theme to the application."""
-        # Color scheme
-        self.colors = {
-            'bg_dark': '#1e1e1e',
-            'bg_medium': '#2d2d2d',
-            'bg_light': '#3e3e3e',
-            'fg_primary': '#ffffff',
-            'fg_secondary': '#b0b0b0',
-            'accent': '#007acc',
-            'accent_hover': '#005a9e',
-            'success': '#4ec9b0',
-            'warning': '#ce9178',
-            'error': '#f48771',
-            'border': '#555555'
-        }
-
         # Configure root window
         self.root.configure(bg=self.colors['bg_dark'])
 
@@ -426,48 +415,6 @@ class MainWindow:
             elif idx == 1:
                 self.stop_key_label = label
 
-    def _create_status_frame(self, parent: ttk.Frame, row: int) -> None:
-        """Create the status display frame."""
-        status_frame = ttk.LabelFrame(parent, text="Status", padding="15")
-        status_frame.grid(row=row, column=0, columnspan=2,
-                          sticky=(tk.W, tk.E), pady=15, padx=5)
-        status_frame.grid_columnconfigure(1, weight=1)
-
-        # Status labels with improved styling
-        labels_data = [
-            ("Current State:", "status"),
-            ("Game Window:", "window"),
-            ("Current Step:", "step"),
-            ("Action:", "action")
-        ]
-
-        for idx, (label_text, attr_name) in enumerate(labels_data):
-            ttk.Label(status_frame, text=label_text,
-                      font=('Segoe UI', 10)).grid(
-                row=idx, column=0, sticky=tk.W, padx=5, pady=5
-            )
-
-            # Create label with appropriate default
-            if attr_name == "status":
-                default_text = "Idle"
-                fg_color = self.colors['fg_secondary']
-            elif attr_name == "window":
-                default_text = "Not detected"
-                fg_color = self.colors['warning']
-            else:
-                default_text = "--"
-                fg_color = self.colors['fg_secondary']
-
-            label = tk.Label(
-                status_frame, text=default_text,
-                font=('Segoe UI', 10, 'bold'),
-                bg=self.colors['bg_dark'],
-                fg=fg_color
-            )
-            label.grid(row=idx, column=1, sticky=tk.W, padx=5, pady=5)
-
-            setattr(self, f"{attr_name}_label", label)
-
     def _create_button_frame(self, parent: ttk.Frame, row: int) -> None:
         """Create the button control frame with organized layout."""
         button_container = ttk.Frame(parent)
@@ -728,14 +675,14 @@ class MainWindow:
         self.root.after(0, self.stop_macro)
 
     def update_status(self, current_step: str, total_steps: str, message: str) -> None:
-        """Update GUI status labels."""
+        """Update GUI status labels (called from any thread)."""
         self.root.after(
-            0, lambda: self._update_gui_status(
+            0, lambda: self._update_status_labels(
                 current_step, total_steps, message)
         )
 
-    def _update_gui_status(self, current_step: str, total_steps: str, message: str) -> None:
-        """Update GUI elements (called from main thread)."""
+    def _update_status_labels(self, current_step: str, total_steps: str, message: str) -> None:
+        """Update GUI elements (must be called from main thread)."""
         if current_step != "--":
             self.step_label.config(text=f"{current_step}/{total_steps}")
         self.action_label.config(text=message)

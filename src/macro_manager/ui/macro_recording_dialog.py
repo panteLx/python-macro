@@ -9,6 +9,7 @@ from pynput import keyboard
 from macro_manager.core.macro_recorder import MacroRecorder
 from macro_manager.macros.recorded_macro import RecordedMacro
 from macro_manager.macros import get_all_macro_names
+from macro_manager.ui.theme import COLORS
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,9 @@ class MacroRecordingDialog:
         self.recorded_macro: Optional[RecordedMacro] = None
         self.f9_listener: Optional[keyboard.Listener] = None
 
+        # Use centralized color scheme
+        self.colors = COLORS
+
         # Create dialog window
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Record New Macro")
@@ -35,18 +39,8 @@ class MacroRecordingDialog:
         self.dialog.transient(parent)
         self.dialog.grab_set()
 
-        # Apply dark theme colors (matching main window)
-        self.colors = {
-            'bg_dark': '#1e1e1e',
-            'bg_medium': '#2d2d2d',
-            'bg_light': '#3e3e3e',
-            'fg_primary': '#ffffff',
-            'fg_secondary': '#b0b0b0',
-            'accent': '#007acc',
-            'success': '#4ec9b0',
-            'error': '#f48771',
-        }
-
+        # Use centralized color scheme
+        self.colors = COLORS
         self.dialog.configure(bg=self.colors['bg_dark'])
 
         self._create_widgets()
@@ -347,10 +341,10 @@ class MacroSaveDialog:
 
         Args:
             parent: Parent window.
-            colors: Color scheme dictionary.
+            colors: Color scheme dictionary (unused, kept for compatibility).
         """
         self.parent = parent
-        self.colors = colors
+        self.colors = COLORS
         self.result = None
 
         # Create dialog window

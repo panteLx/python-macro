@@ -6,6 +6,8 @@ from typing import Dict, Optional
 
 import keyboard
 
+from macro_manager.ui.theme import COLORS
+
 
 class KeyBindingDialog:
     """Dialog for configuring key bindings."""
@@ -22,20 +24,8 @@ class KeyBindingDialog:
         self.capturing = False
         self.key_hook = None  # Store the keyboard hook handle
 
-        # Color scheme (matching main window)
-        self.colors = {
-            'bg_dark': '#1e1e1e',
-            'bg_medium': '#2d2d2d',
-            'bg_light': '#3e3e3e',
-            'fg_primary': '#ffffff',
-            'fg_secondary': '#b0b0b0',
-            'accent': '#007acc',
-            'accent_hover': '#005a9e',
-            'success': '#4ec9b0',
-            'warning': '#ce9178',
-            'error': '#f48771',
-            'border': '#555555'
-        }
+        # Use centralized color scheme
+        self.colors = COLORS
 
         # Create dialog
         self.dialog = tk.Toplevel(parent)

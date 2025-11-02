@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import zipfile
@@ -125,6 +126,54 @@ def check_for_updates() -> Optional[Tuple[str, str, str]]:
         return None
 
 
+def reinstall_requirements(app_root: Path) -> bool:
+    """
+    Reinstall pip requirements after an update.
+
+    Args:
+        app_root: Root directory of the application
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        import subprocess
+
+        requirements_file = app_root / "requirements.txt"
+        if not requirements_file.exists():
+            logger.warning(
+                "requirements.txt not found, skipping dependency installation")
+            return True
+
+        # Get the Python executable that's currently running
+        python_exe = sys.executable
+
+        logger.info(f"Installing requirements using: {python_exe}")
+
+        # Run pip install
+        result = subprocess.run(
+            [python_exe, "-m", "pip", "install", "-r", str(requirements_file)],
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minute timeout
+        )
+
+        if result.returncode == 0:
+            logger.info("Requirements installed successfully")
+            logger.debug(f"pip output: {result.stdout}")
+            return True
+        else:
+            logger.error(f"Failed to install requirements: {result.stderr}")
+            return False
+
+    except subprocess.TimeoutExpired:
+        logger.error("Timeout while installing requirements")
+        return False
+    except Exception as e:
+        logger.error(f"Error installing requirements: {e}", exc_info=True)
+        return False
+
+
 def download_and_install_update(download_url: str, version: str) -> bool:
     """
     Download and install an update.
@@ -171,9 +220,19 @@ def download_and_install_update(download_url: str, version: str) -> bool:
 
             logger.info(f"Installing update to {app_root}")
 
-            # List of files/folders to update
-            items_to_update = ['src', 'main.py',
-                               'requirements.txt', 'README.md', 'LICENSE']
+            # List of files/folders to update - these will be completely replaced
+            items_to_update = [
+                'src',
+                'main.py',
+                'requirements.txt',
+                'README.md',
+                'LICENSE',
+                'VERSION',
+                'start_macromanager.bat'
+            ]
+
+            # Config items that need special handling
+            config_items_to_update = ['config']
 
             # Define ignore patterns for copying
             def ignore_patterns(directory, contents):
@@ -214,29 +273,73 @@ def download_and_install_update(download_url: str, version: str) -> bool:
 
                     logger.info(f"Backed up {item_name}")
 
-                # Remove old item (except for src which we handle specially)
-                if dest_item.exists() and item_name != 'src':
+                # Completely remove old item before copying new one
+                if dest_item.exists():
                     if dest_item.is_dir():
+                        logger.info(f"Removing old {item_name} directory...")
                         shutil.rmtree(dest_item)
                     else:
+                        logger.info(f"Removing old {item_name} file...")
                         dest_item.unlink()
 
                 # Copy new item
                 if source_item.is_dir():
-                    if item_name == 'src':
-                        # For src, we need to preserve logs directory
-                        # Copy everything except logs
-                        shutil.copytree(
-                            source_item, dest_item, ignore=ignore_patterns, dirs_exist_ok=True)
-                    else:
-                        shutil.copytree(source_item, dest_item)
+                    shutil.copytree(source_item, dest_item,
+                                    ignore=ignore_patterns)
                 else:
                     shutil.copy2(source_item, dest_item)
 
                 logger.info(f"Updated {item_name}")
 
+            # Handle config directory - only update bf6_*.json macros and macro_config.json
+            for item_name in config_items_to_update:
+                source_item = source_dir / item_name
+                dest_item = app_root / item_name
+
+                if not source_item.exists():
+                    logger.warning(f"Item not found in update: {item_name}")
+                    continue
+
+                # Ensure destination config directory exists
+                dest_item.mkdir(parents=True, exist_ok=True)
+
+                # Create recorded_macros subdirectory if it doesn't exist
+                recorded_macros_dest = dest_item / "recorded_macros"
+                recorded_macros_dest.mkdir(parents=True, exist_ok=True)
+
+                # Copy macro_config.json if it exists
+                config_json_source = source_item / "macro_config.json"
+                config_json_dest = dest_item / "macro_config.json"
+                if config_json_source.exists():
+                    if config_json_dest.exists():
+                        backup_path = app_root / "macro_config.json.backup"
+                        shutil.copy2(config_json_dest, backup_path)
+                        logger.info("Backed up macro_config.json")
+                    shutil.copy2(config_json_source, config_json_dest)
+                    logger.info("Updated macro_config.json")
+
+                # Copy all bf6_*.json macros from the update
+                recorded_macros_source = source_item / "recorded_macros"
+                if recorded_macros_source.exists():
+                    for macro_file in recorded_macros_source.glob("bf6_*.json"):
+                        dest_macro = recorded_macros_dest / macro_file.name
+                        if dest_macro.exists():
+                            backup_path = app_root / \
+                                f"{macro_file.name}.backup"
+                            shutil.copy2(dest_macro, backup_path)
+                            logger.info(f"Backed up {macro_file.name}")
+                        shutil.copy2(macro_file, dest_macro)
+                        logger.info(
+                            f"Updated prebuilt macro: {macro_file.name}")
+
             # Save new version
             save_version(version)
+
+            # Reinstall pip requirements
+            logger.info("Reinstalling pip requirements...")
+            if not reinstall_requirements(app_root):
+                logger.warning(
+                    "Failed to reinstall requirements. Please run 'pip install -r requirements.txt' manually.")
 
             logger.info("Update installed successfully!")
             return True

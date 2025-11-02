@@ -12,6 +12,7 @@ from typing import Optional
 from macro_manager.core.config import Config
 from macro_manager.core.logger import setup_logging
 from macro_manager.ui.main_window import MainWindow
+from macro_manager.macros import initialize_macro_storage
 from macro_manager.ui.update_dialog import (
     UpdateDialog,
     show_update_progress,
@@ -45,6 +46,9 @@ class MacroManagerApp:
         )
 
         logger.info("Starting MacroManager application")
+
+        # Initialize macro storage
+        initialize_macro_storage(self.config.config_dir)
 
         # Create root window
         self.root = tk.Tk()

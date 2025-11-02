@@ -20,6 +20,7 @@ class KeyBindingDialog:
         self.result: Optional[Dict[str, str]] = None
         self.current_key: Optional[str] = None
         self.capturing = False
+        self.key_hook = None  # Store the keyboard hook handle
 
         # Color scheme (matching main window)
         self.colors = {
@@ -231,7 +232,8 @@ class KeyBindingDialog:
                 text="⌨ Press a key for STOP macro...", fg=self.colors['accent']
             )
 
-        keyboard.on_press(self.on_key_press, suppress=True)
+        # Use on_press and store the hook handle for later removal
+        self.key_hook = keyboard.on_press(self.on_key_press, suppress=True)
 
     def on_key_press(self, event) -> None:
         """Handle key press event.
@@ -251,7 +253,10 @@ class KeyBindingDialog:
                 fg=self.colors['error']
             )
             self.capturing = False
-            keyboard.unhook_all()
+            # Unhook using the stored hook handle
+            if self.key_hook:
+                keyboard.unhook(self.key_hook)
+                self.key_hook = None
             self.start_button.config(state="normal")
             self.stop_button.config(state="normal")
             return
@@ -277,17 +282,26 @@ class KeyBindingDialog:
 
         # Stop capturing
         self.capturing = False
-        keyboard.unhook_all()
+        # Unhook using the stored hook handle
+        if self.key_hook:
+            keyboard.unhook(self.key_hook)
+            self.key_hook = None
 
     def save_changes(self) -> None:
         """Save the new key bindings."""
-        keyboard.unhook_all()
+        # Clean up any remaining keyboard hooks from this dialog
+        if self.key_hook:
+            keyboard.unhook(self.key_hook)
+            self.key_hook = None
         self.result = self.new_bindings
         self.dialog.destroy()
 
     def cancel(self) -> None:
         """Cancel without saving."""
-        keyboard.unhook_all()
+        # Clean up any remaining keyboard hooks from this dialog
+        if self.key_hook:
+            keyboard.unhook(self.key_hook)
+            self.key_hook = None
         self.result = None
         self.dialog.destroy()
 

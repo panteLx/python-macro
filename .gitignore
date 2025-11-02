@@ -67,8 +67,7 @@ venv.bak/
 
 # MacroManager specific
 logs/
-config/macro_config.json
-config/.setup_complete
+config/
 
 # Old structure (to be removed)
 app.py.old

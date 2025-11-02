@@ -139,7 +139,8 @@ class Macro(ABC):
             if not running.is_set():
                 return False
 
-            self.update_status(f"Released {key.upper()}", total_steps, current_step)
+            self.update_status(
+                f"Released {key.upper()}", total_steps, current_step)
 
             # Delay between multiple presses
             if delay > 0 and i < count - 1:

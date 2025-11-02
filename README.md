@@ -14,6 +14,8 @@ A customizable macro tool for automating repetitive actions in games. Easy to se
 - **Easy-to-use GUI**: Simple interface with real-time status updates
 - **Customizable Hotkeys**: Configure your own key bindings
 - **Multiple Macros**: Pre-configured macros for Battlefield 6 game modes
+- **Record Your Own Macros**: Create custom macros by recording your keyboard actions
+- **Save & Play Custom Macros**: Save recorded macros and play them back like prebuilt ones
 - **Live Monitoring**: See what the macro is doing in real-time
 
 ## 📋 Requirements
@@ -87,6 +89,36 @@ Settings are saved in `config/macro_config.json` and persist between sessions.
    - Click the "Stop" button, OR
    - Press your configured stop key (default: F2)
 
+### Recording Custom Macros
+
+You can now create your own macros by recording your keyboard actions!
+
+1. **Click the "Record" button** in the main window
+2. **Click "Start Recording"** in the dialog that appears
+3. **Perform the actions** you want to record (key presses)
+4. **Press ESC** to stop recording
+5. **Review your recorded actions** in the dialog
+6. **Click "Save Macro"** and provide:
+   - A name for your macro
+   - A description (optional)
+   - Whether it should loop continuously or run once
+7. **Your custom macro is now available** in the macro dropdown!
+
+**Tips for Recording:**
+
+- The recorder captures both quick key taps and held keys
+- Delays between actions are automatically recorded
+- You can clear and re-record if you make a mistake
+- Press ESC at any time to stop recording
+
+### Deleting Custom Macros
+
+- Select a custom recorded macro from the dropdown
+- Click the "Delete" button
+- Confirm deletion
+
+**Note:** Only custom recorded macros can be deleted. Prebuilt macros are part of the application.
+
 ### Changing Key Bindings
 
 - Click "Change Keys" button or press F12
@@ -96,26 +128,39 @@ Settings are saved in `config/macro_config.json` and persist between sessions.
 
 ## Available Macros
 
-### Battlefield 6 - Siege of Cairo AFK
+### Pre-built Macros
+
+#### Battlefield 6 - Siege of Cairo AFK
 
 Automates capturing objectives in the Siege of Cairo game mode.
 
 - **Portal Code**: YVNDS
 - **Tutorial**: [YouTube](https://youtu.be/LH_Gj87xodI?si=GJvNM4reqZoQxJ7f&t=161)
 
-### Battlefield 6 - Liberation Peak AFK
+#### Battlefield 6 - Liberation Peak AFK
 
 Automates capturing objectives in the Liberation Peak game mode.
 
 - **Portal Code**: YWVXU
 - **Tutorial**: [YouTube](https://youtu.be/TTv9BSTzFTg?si=fdGpfcFno4Y9w3cI&t=61)
 
-### Battlefield 6 - Space Bar AFK
+#### Battlefield 6 - Space Bar AFK
 
 Simple space bar automation macro.
 
 - **Portal Code**: YRV4A
 - **Description**: Repeatedly presses space bar
+
+### Custom Recorded Macros
+
+You can create your own custom macros using the Record feature! Custom macros are:
+
+- **Saved automatically** in `config/recorded_macros/` as JSON files
+- **Loaded on startup** and appear in the macro dropdown
+- **Fully customizable** - record any sequence of keyboard actions
+- **Deletable** - remove custom macros you no longer need
+
+Custom macros can either loop continuously (like the prebuilt ones) or run once and stop.
 
 ## ⚠️ Disclaimer
 

@@ -49,7 +49,14 @@ class MainWindow:
         self.root.title("MacroManager")
         width = self.config.get("window_width", 1050)
         height = self.config.get("window_height", 620)
-        self.root.geometry(f"{width}x{height}")
+
+        # Center window on screen
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+
         self.root.resizable(True, True)
         self.root.minsize(900, 550)
 

@@ -10,7 +10,7 @@ if %errorlevel% neq 0 (
     echo ERROR: Python is not installed!
     echo Please install Python 3.8 or higher from https://www.python.org/downloads/
     echo.
-    pause
+    powershell -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Python is not installed!`n`nPlease install Python 3.8 or higher from https://www.python.org/downloads/', 'MacroManager - Error', 'OK', 'Error')"
     exit /b 1
 )
 
@@ -23,7 +23,7 @@ if not exist ".venv" (
     python -m venv .venv
     if %errorlevel% neq 0 (
         echo ERROR: Failed to create virtual environment.
-        pause
+        powershell -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Failed to create virtual environment.`n`nPlease check your Python installation and permissions.', 'MacroManager - Error', 'OK', 'Error')"
         exit /b 1
     )
     echo Virtual environment created!
@@ -38,7 +38,7 @@ if not exist ".venv" (
     
     if %errorlevel% neq 0 (
         echo ERROR: Failed to install dependencies.
-        pause
+        powershell -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Failed to install dependencies.`n`nPlease check your internet connection and requirements.txt file.', 'MacroManager - Error', 'OK', 'Error')"
         exit /b 1
     )
     
@@ -57,6 +57,13 @@ REM Start the application
 echo Starting MacroManager...
 echo.
 python main.py
+
+if %errorlevel% neq 0 (
+    echo ERROR: MacroManager failed to start.
+    powershell -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('MacroManager failed to start.`n`nExit code: %errorlevel%`n`nPlease check the console output above for more details.', 'MacroManager - Error', 'OK', 'Error')"
+    pause
+    exit /b %errorlevel%
+)
 
 REM Deactivate when done
 deactivate

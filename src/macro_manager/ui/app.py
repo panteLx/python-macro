@@ -3,6 +3,7 @@
 import io
 import logging
 import os
+import subprocess
 import sys
 import tkinter as tk
 from tkinter import messagebox
@@ -234,10 +235,18 @@ class MacroManagerApp:
                     # Close the current application first
                     self.root.destroy()
 
-                    # Start the batch file
-                    os.startfile(str(batch_file))
+                    # Start the batch file using subprocess with DETACHED_PROCESS flag
+                    # This prevents the new process from inheriting handles and ensures clean separation
+                    # We need to call it through cmd.exe to properly execute the .bat file
+                    DETACHED_PROCESS = 0x00000008
+                    subprocess.Popen(
+                        ['cmd.exe', '/c', 'start', '', str(batch_file)],
+                        creationflags=DETACHED_PROCESS,
+                        close_fds=True,
+                        cwd=str(batch_file.parent)
+                    )
 
-                    # Exit the current process
+                    # Exit the current process immediately
                     sys.exit(0)
                 else:
                     # Close the current application

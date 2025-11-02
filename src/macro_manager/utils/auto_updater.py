@@ -199,6 +199,39 @@ def safe_remove_tree(path: Path, ignore_errors: bool = False) -> bool:
         return False
 
 
+def clean_directory_except(directory: Path, preserve_dirs: list) -> None:
+    """
+    Remove all files and subdirectories except specified ones.
+
+    Args:
+        directory: Directory to clean
+        preserve_dirs: List of directory names to preserve (e.g., ['logs'])
+    """
+    if not directory.exists():
+        return
+
+    for item in directory.iterdir():
+        # Skip preserved directories
+        if item.is_dir() and item.name in preserve_dirs:
+            logger.info(f"Preserving directory: {item.name}")
+            continue
+
+        try:
+            if item.is_dir():
+                # Recursively clean subdirectories
+                if item.name != '__pycache__':
+                    logger.debug(f"Removing directory: {item}")
+                shutil.rmtree(item, ignore_errors=True)
+            else:
+                # Remove files except .pyc
+                if not item.name.endswith('.pyc'):
+                    logger.debug(f"Removing file: {item}")
+                item.unlink()
+        except Exception as e:
+            # Log but continue - don't let one locked file stop the update
+            logger.warning(f"Could not remove {item}: {e}")
+
+
 def download_and_install_update(download_url: str, version: str) -> bool:
     """
     Download and install an update.
@@ -311,14 +344,18 @@ def download_and_install_update(download_url: str, version: str) -> bool:
                     else:
                         logger.info(f"Removing old {item_name} file...")
                         dest_item.unlink()
+                elif dest_item.exists() and item_name == 'src':
+                    # For src, clean everything except logs directory
+                    logger.info(
+                        f"Cleaning {item_name} directory (preserving logs)...")
+                    clean_directory_except(dest_item, preserve_dirs=['logs'])
 
                 # Copy new item
                 if source_item.is_dir():
                     if item_name == 'src':
                         # For src directory, use dirs_exist_ok to overlay files
                         # This avoids issues with locked log files
-                        logger.info(
-                            f"Updating {item_name} directory (preserving logs)...")
+                        logger.info(f"Updating {item_name} directory...")
                         shutil.copytree(source_item, dest_item,
                                         ignore=ignore_patterns,
                                         dirs_exist_ok=True)

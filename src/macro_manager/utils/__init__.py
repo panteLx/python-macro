@@ -7,6 +7,12 @@ from macro_manager.utils.window_utils import (
     restore_window_focus,
     send_key_to_window,
 )
+from macro_manager.utils.auto_updater import (
+    check_for_updates,
+    download_and_install_update,
+    get_current_version,
+    cleanup_backups,
+)
 
 __all__ = [
     "DIK_W",
@@ -16,4 +22,8 @@ __all__ = [
     "focus_game_window",
     "restore_window_focus",
     "send_key_to_window",
+    "check_for_updates",
+    "download_and_install_update",
+    "get_current_version",
+    "cleanup_backups",
 ]

@@ -6,6 +6,7 @@ A customizable macro tool for automating repetitive actions in games. Easy to se
 
 ## ✨ Features
 
+- **Auto-Update**: Automatically checks for updates on startup and installs them with one click
 - **Easy-to-use GUI**: Simple interface with real-time status updates
 - **Customizable Hotkeys**: Configure your own key bindings
 - **Multiple Macros**: Pre-configured macros for Battlefield 6 game modes

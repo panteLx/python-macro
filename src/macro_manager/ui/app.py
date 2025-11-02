@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import tkinter as tk
+from tkinter import messagebox
 from pathlib import Path
 from typing import Optional
 
@@ -62,6 +63,9 @@ class MacroManagerApp:
         # Restore window visibility and create main window
         self.root.attributes('-alpha', 1.0)
         self.main_window = MainWindow(self.root, self.config)
+
+        # Set the update callback for manual update checks
+        self.main_window.set_update_callback(self.manual_update_check)
 
         # Set up cleanup on close
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -130,6 +134,84 @@ class MacroManagerApp:
 
         except Exception as e:
             logger.error(f"Error showing update dialog: {e}", exc_info=True)
+
+    def manual_update_check(self):
+        """Manually check for updates when user clicks the button."""
+        try:
+            logger.info("Manual update check triggered")
+
+            # Check for updates
+            update_info = check_for_updates()
+
+            if update_info is None:
+                # No updates available
+                messagebox.showinfo(
+                    "No Updates",
+                    "You are running the latest version!",
+                    parent=self.root
+                )
+                return
+
+            # Update available, show dialog
+            version, download_url, release_notes = update_info
+
+            def on_update():
+                """Handle user confirming update."""
+                # Show progress dialog
+                progress_dialog = show_update_progress(self.root)
+
+                # Process pending events to show the progress dialog
+                self.root.update()
+
+                # Download and install update (this runs synchronously)
+                try:
+                    success = download_and_install_update(
+                        download_url, version)
+                except Exception as e:
+                    logger.error(
+                        f"Update installation failed: {e}", exc_info=True)
+                    success = False
+
+                # Close progress dialog
+                try:
+                    progress_dialog.destroy()
+                except:
+                    pass
+
+                if success:
+                    # Clean up old backups
+                    cleanup_backups()
+
+                    # Show success message
+                    show_update_success(self.root)
+
+                    # Restart the application
+                    self._restart_application()
+                else:
+                    show_update_error(self.root)
+
+            def on_skip():
+                """Handle user skipping update."""
+                logger.info("User skipped manual update")
+
+            # Create and show update dialog
+            dialog = UpdateDialog(
+                self.root,
+                version,
+                release_notes,
+                on_update,
+                on_skip
+            )
+            dialog.show()
+
+        except Exception as e:
+            logger.error(
+                f"Error during manual update check: {e}", exc_info=True)
+            messagebox.showerror(
+                "Error",
+                "Failed to check for updates. Please try again later.",
+                parent=self.root
+            )
 
     def _restart_application(self):
         """Restart the application."""

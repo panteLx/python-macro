@@ -17,6 +17,7 @@ from macro_manager.macros import get_macro_by_name, get_all_macro_names
 from macro_manager.ui.key_binding_dialog import KeyBindingDialog
 from macro_manager.ui.stdout_redirector import StdoutRedirector
 from macro_manager.utils.window_utils import find_game_window
+from macro_manager.utils.auto_updater import get_current_version
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class MainWindow:
         self.root = root
         self.config = config
         self.controller = MacroController()
+        self.update_callback = None  # Callback for checking updates
 
         # Configure window
         self.root.title("MacroManager")
@@ -147,6 +149,13 @@ class MainWindow:
                         foreground=self.colors['accent'],
                         font=('Segoe UI', 10, 'bold'))
 
+        # Configure version badge style
+        style.configure('Version.TLabel',
+                        background=self.colors['accent'],
+                        foreground='#ffffff',
+                        font=('Segoe UI', 9, 'bold'),
+                        padding=(8, 4))
+
         # Configure Scrollbar
         style.configure('Vertical.TScrollbar',
                         background=self.colors['bg_light'],
@@ -171,11 +180,28 @@ class MainWindow:
         left_frame.grid_columnconfigure(0, weight=1)
         left_frame.grid_rowconfigure(8, weight=1)
 
-        # Title
+        # Title with version badge
+        title_frame = ttk.Frame(left_frame)
+        title_frame.grid(row=0, column=0, columnspan=2, pady=(0, 25))
+
         title_label = ttk.Label(
-            left_frame, text="MacroManager", style='Title.TLabel'
+            title_frame, text="MacroManager", style='Title.TLabel'
         )
-        title_label.grid(row=0, column=0, columnspan=2, pady=(0, 25))
+        title_label.pack(side=tk.LEFT, padx=(0, 10))
+
+        # Version badge
+        version_badge = tk.Label(
+            title_frame,
+            text=f"v{get_current_version()}",
+            bg=self.colors['accent'],
+            fg='#ffffff',
+            font=('Segoe UI', 9, 'bold'),
+            padx=8,
+            pady=4,
+            borderwidth=0,
+            relief='flat'
+        )
+        version_badge.pack(side=tk.LEFT)
 
         # Macro selection
         ttk.Label(
@@ -318,12 +344,12 @@ class MainWindow:
         """Create the button control frame."""
         button_frame = ttk.Frame(parent)
         button_frame.grid(row=row, column=0, columnspan=2, pady=15)
-        button_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        button_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
 
         # Start button
         self.start_button = tk.Button(
             button_frame, text="▶ Start", command=self.start_macro,
-            width=12, font=('Segoe UI', 10, 'bold'),
+            width=10, font=('Segoe UI', 10, 'bold'),
             bg=self.colors['success'], fg='#ffffff',
             activebackground='#3da88a', activeforeground='#ffffff',
             borderwidth=0, relief='flat', cursor='hand2',
@@ -334,7 +360,7 @@ class MainWindow:
         # Stop button
         self.stop_button = tk.Button(
             button_frame, text="■ Stop", command=self.stop_macro,
-            width=12, font=('Segoe UI', 10, 'bold'),
+            width=10, font=('Segoe UI', 10, 'bold'),
             bg=self.colors['error'], fg='#ffffff',
             activebackground='#d66f5e', activeforeground='#ffffff',
             borderwidth=0, relief='flat', cursor='hand2',
@@ -345,13 +371,24 @@ class MainWindow:
         # Change keys button
         self.change_keys_button = tk.Button(
             button_frame, text="⚙ Keys", command=self.change_keys,
-            width=12, font=('Segoe UI', 10, 'bold'),
+            width=10, font=('Segoe UI', 10, 'bold'),
             bg=self.colors['accent'], fg='#ffffff',
             activebackground=self.colors['accent_hover'], activeforeground='#ffffff',
             borderwidth=0, relief='flat', cursor='hand2',
             pady=12
         )
         self.change_keys_button.grid(row=0, column=2, padx=5)
+
+        # Check updates button
+        self.check_updates_button = tk.Button(
+            button_frame, text="🔄 Updates", command=self.check_for_updates,
+            width=10, font=('Segoe UI', 10, 'bold'),
+            bg=self.colors['bg_light'], fg=self.colors['fg_primary'],
+            activebackground=self.colors['bg_medium'], activeforeground=self.colors['fg_primary'],
+            borderwidth=0, relief='flat', cursor='hand2',
+            pady=12
+        )
+        self.check_updates_button.grid(row=0, column=3, padx=5)
 
     def _create_log_frame(self, parent: ttk.Frame, row: int, column: int = 0) -> None:
         """Create the log output frame."""
@@ -524,6 +561,25 @@ class MainWindow:
 
         messagebox.showinfo("Success", "Key bindings updated successfully!")
         logger.info(f"Key bindings updated: {new_bindings}")
+
+    def set_update_callback(self, callback) -> None:
+        """Set the callback function for checking updates.
+
+        Args:
+            callback: Function to call when user wants to check for updates
+        """
+        self.update_callback = callback
+
+    def check_for_updates(self) -> None:
+        """Trigger a manual update check."""
+        if self.update_callback:
+            self.update_callback()
+        else:
+            messagebox.showinfo(
+                "Check for Updates",
+                "Update checking is not available at this time."
+            )
+            logger.warning("Update callback not set")
 
     def is_first_run(self) -> bool:
         """Check if this is the first run by seeing if config has been customized."""

@@ -1,161 +1,113 @@
-<div align="center"><img src="https://i.imgur.com/NOmo7Dg.png" alt="MacroManager Logo"></div>
-<h1 align="center" id="title">MacroManager</h1>
+# MacroManager
 
-> **Note**
->
-> A customizable macro tool designed for automating repetitive actions in games, with a focus on user-friendly interface and configuration. This tool features a modern graphical user interface for easy macro management and configuration.
+> A simple macro automation tool for games
 
-## Features
+A customizable macro tool for automating repetitive actions in games. Easy to set up and use!
 
-- Modern graphical user interface (GUI)
-- Multiple macro support with easy selection
-- Detailed macro descriptions and status monitoring
+## ✨ Features
 
-- Customizable start/stop keys
-- Clean and informative console interface
-- Persistent key bindings configuration
-- Real-time status display
-- Ability to change key bindings on the fly
+- **Easy-to-use GUI**: Simple interface with real-time status updates
+- **Customizable Hotkeys**: Configure your own key bindings
+- **Multiple Macros**: Pre-configured macros for Battlefield 6 game modes
+- **Live Monitoring**: See what the macro is doing in real-time
 
-## Installation
+## 📋 Requirements
 
-### Prerequisites
+- **Windows OS** (uses Windows API for input simulation)
+- **Python 3.8+** ([Download from python.org](https://www.python.org/downloads/))
 
-- Windows OS (required for game window interaction)
-- Python 3.11 or higher ([Download from python.org](https://www.python.org/downloads/))
-  - During installation, check "Add Python to PATH"
+## 🚀 Quick Setup
 
-### Quick Start (Recommended)
+1. **Download the repository**
 
-1. Download the repository from [GitHub](https://github.com/panteLx/MacroManager/)
-2. Double-click `start_macro.bat`
-3. That's it! The script will handle everything automatically
-
-### Manual Installation
-
-If you prefer to set up manually or the quick start doesn't work:
-
-1. **Get the Code**
-
-   ```powershell
-   # Either clone the repository
+   ```bash
    git clone https://github.com/panteLx/MacroManager.git
    cd MacroManager
-
-   # Or download and extract the ZIP from GitHub
    ```
 
-2. **Set Up Environment**
+2. **Run the app**
 
-   ```powershell
-   # Create and activate virtual environment
-   python -m venv .venv
-   .\.venv\Scripts\activate
+   Just double-click `start_macro.bat` or run in terminal:
 
-   # Install dependencies
-   pip install -r requirements.txt
+   ```bash
+   start_macro.bat
    ```
 
-## Usage
+That's it! The first time you run it, it will automatically:
 
-1. **Launch the Application**
+- Create a virtual environment
+- Install all dependencies
+- Open the app with a setup wizard
 
-   ```powershell
-   python app.py
-   ```
+## 🎮 Usage
 
-2. **First-Time Setup**
+### Starting the Application
 
-   - On first run, you'll be prompted to set up your hotkeys
-   - Choose your preferred START and STOP keys
-   - These settings will be saved for future use
+Just run `start_macro.bat` - it handles everything automatically!### First-Time Setup
 
-3. **Using MacroManager**
-   - Make sure your game is running and visible
-   - Select a macro from the dropdown menu
-   - Read the description to understand what it does
-   - Use the buttons or hotkeys to control the macro
-   - Monitor the status in real-time
-   - Press 'K' or use the button to change key bindings
+On first launch, you'll be prompted to configure your hotkeys:
 
-## Adding New Macros
+- **Start Macro**: Default F1 (customizable)
+- **Stop Macro**: Default F2 (customizable)
+- **Change Keys**: F12
 
-You can easily add new macros by editing the `macros.py` file:
+Settings are saved in `config/macro_config.json` and persist between sessions.
 
-1. Create a new class inheriting from `Macro`
-2. Implement the required methods
-3. Add your macro to the `AVAILABLE_MACROS` dictionary
+### Using Macros
 
-Example:
+1. **Launch your game** (e.g., Battlefield 6)
+2. **Select a macro** from the dropdown menu
+3. **Read the description** to understand what it does
+4. **Start the macro**:
+   - Click the "Start" button, OR
+   - Press your configured start key (default: F1)
+5. **Monitor progress** in the status panel and log window
+6. **Stop the macro**:
+   - Click the "Stop" button, OR
+   - Press your configured stop key (default: F2)
 
-```python
-class MyNewMacro(Macro):
-    def __init__(self):
-        super().__init__(
-            "My Custom Macro",
-            "Description of what this macro does"
-        )
+### Changing Key Bindings
 
-    def run(self, game_window: Any, running: Any) -> None:
-        while running.is_set():
-            try:
-                # Your macro logic here
-                pass
-            except Exception as e:
-                print(f"Error in macro sequence: {e}")
-                time.sleep(1)
+- Click "Change Keys" button or press F12
+- Click "Set New Key" for the binding you want to change
+- Press the desired key (avoid ESC and system keys)
+- Click "Save Changes"
 
-# Add to available macros
-AVAILABLE_MACROS["my_macro"] = MyNewMacro()
-```
+## Available Macros
 
-### 2. Daily Usage
+### Battlefield 6 - Siege of Cairo AFK
 
-1. Start the Macro:
+Automates capturing objectives in the Siege of Cairo game mode.
 
-   ```powershell
-   # Navigate to project folder
-   cd path\to\MacroManager
+- **Portal Code**: YVNDS
+- **Tutorial**: [YouTube](https://youtu.be/LH_Gj87xodI?si=GJvNM4reqZoQxJ7f&t=161)
 
-   # Activate virtual environment
-   .\.venv\Scripts\activate
+### Battlefield 6 - Liberation Peak AFK
 
-   # Run the script
-   python app.py
-   ```
+Automates capturing objectives in the Liberation Peak game mode.
 
-2. Using the Macro:
+- **Portal Code**: YWVXU
+- **Tutorial**: [YouTube](https://youtu.be/TTv9BSTzFTg?si=fdGpfcFno4Y9w3cI&t=61)
 
-   - Make sure your game window is open and visible
-   - Use your configured START key to begin the macro
-   - Use your configured STOP key to halt the macro
-   - Press 'K' to change key bindings (only while macro is stopped)
-   - Press Ctrl+C in the console to exit the program
+### Battlefield 6 - Space Bar AFK
 
-3. Understanding the Interface:
-   - The console shows the current status (Idle/Running/Stopped)
-   - Your current key bindings are always displayed
-   - Warning messages will appear when important actions are needed
-   - The game window title is shown to confirm correct detection
+Simple space bar automation macro.
 
-## Important Notes
+- **Portal Code**: YRV4A
+- **Description**: Repeatedly presses space bar
 
-- Make sure to stop the macro before changing key bindings
-- Your key bindings are saved in `macro_config.json` and will be loaded automatically on subsequent runs
-- The script must be run with sufficient permissions to send input to the game
+## ⚠️ Disclaimer
 
-## Troubleshooting
+**This tool is for educational purposes only.** Using macros in online games may violate the game's terms of service and could result in penalties including account bans. Use at your own risk.
 
-1. If the macro isn't working:
+## 📝 License
 
-   - Ensure the game window is in focus
-   - Check if you're running the script with the correct permissions
-   - Verify the game window is detected (title will be displayed)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-2. If keys aren't being detected:
-   - Try running the script as administrator
-   - Ensure no other programs are blocking keyboard input
+## 👨‍💻 Author
 
-## License
+**panteLx** - [@panteLx](https://github.com/panteLx)
 
-This project is open source and available under the MIT License.
+---
+
+**Having issues?** Check the logs in `logs/macro_manager.log` or open an [Issue](https://github.com/panteLx/MacroManager/issues) on GitHub.

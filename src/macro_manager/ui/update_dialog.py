@@ -216,7 +216,7 @@ def show_update_progress(parent: tk.Tk) -> tk.Toplevel:
 
     progress_dialog = tk.Toplevel(parent)
     progress_dialog.title("Installing Update")
-    progress_dialog.geometry("450x180")
+    progress_dialog.geometry("500x250")
     progress_dialog.resizable(False, False)
     progress_dialog.transient(parent)
     progress_dialog.grab_set()
@@ -224,9 +224,9 @@ def show_update_progress(parent: tk.Tk) -> tk.Toplevel:
 
     # Center the dialog
     progress_dialog.update_idletasks()
-    x = (progress_dialog.winfo_screenwidth() // 2) - (450 // 2)
-    y = (progress_dialog.winfo_screenheight() // 2) - (180 // 2)
-    progress_dialog.geometry(f"450x180+{x}+{y}")
+    x = (progress_dialog.winfo_screenwidth() // 2) - (500 // 2)
+    y = (progress_dialog.winfo_screenheight() // 2) - (250 // 2)
+    progress_dialog.geometry(f"500x250+{x}+{y}")
 
     # Disable close button
     progress_dialog.protocol("WM_DELETE_WINDOW", lambda: None)

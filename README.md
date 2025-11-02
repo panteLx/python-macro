@@ -27,10 +27,10 @@ A customizable macro tool for automating repetitive actions in games. Easy to se
 
 2. **Run the app**
 
-   Just double-click `start_macro.bat` or run in terminal:
+   Just double-click `start_macromanager.bat` or run in terminal:
 
    ```bash
-   start_macro.bat
+   start_macromanager.bat
    ```
 
 That's it! The first time you run it, it will automatically:
@@ -43,7 +43,7 @@ That's it! The first time you run it, it will automatically:
 
 ### Starting the Application
 
-Just run `start_macro.bat` - it handles everything automatically!### First-Time Setup
+Just run `start_macromanager.bat` - it handles everything automatically!### First-Time Setup
 
 On first launch, you'll be prompted to configure your hotkeys:
 

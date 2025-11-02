@@ -37,11 +37,14 @@ class MainWindow:
 
         # Configure window
         self.root.title("MacroManager")
-        width = self.config.get("window_width", 700)
-        height = self.config.get("window_height", 900)
+        width = self.config.get("window_width", 1100)
+        height = self.config.get("window_height", 700)
         self.root.geometry(f"{width}x{height}")
         self.root.resizable(True, True)
-        self.root.minsize(500, 600)
+        self.root.minsize(900, 600)
+
+        # Apply modern dark theme
+        self._apply_dark_theme()
 
         # Configure grid
         self.root.grid_rowconfigure(0, weight=1)
@@ -57,26 +60,130 @@ class MainWindow:
 
         logger.info("Main window initialized")
 
+    def _apply_dark_theme(self) -> None:
+        """Apply modern dark theme to the application."""
+        # Color scheme
+        self.colors = {
+            'bg_dark': '#1e1e1e',
+            'bg_medium': '#2d2d2d',
+            'bg_light': '#3e3e3e',
+            'fg_primary': '#ffffff',
+            'fg_secondary': '#b0b0b0',
+            'accent': '#007acc',
+            'accent_hover': '#005a9e',
+            'success': '#4ec9b0',
+            'warning': '#ce9178',
+            'error': '#f48771',
+            'border': '#555555'
+        }
+
+        # Configure root window
+        self.root.configure(bg=self.colors['bg_dark'])
+
+        # Configure ttk style
+        style = ttk.Style()
+
+        # Use a modern theme as base
+        style.theme_use('clam')
+
+        # Configure TFrame
+        style.configure('TFrame',
+                        background=self.colors['bg_dark'])
+
+        # Configure TLabel
+        style.configure('TLabel',
+                        background=self.colors['bg_dark'],
+                        foreground=self.colors['fg_primary'],
+                        font=('Segoe UI', 10))
+
+        # Configure title labels
+        style.configure('Title.TLabel',
+                        background=self.colors['bg_dark'],
+                        foreground=self.colors['accent'],
+                        font=('Segoe UI', 18, 'bold'))
+
+        # Configure section labels
+        style.configure('Section.TLabel',
+                        background=self.colors['bg_dark'],
+                        foreground=self.colors['fg_primary'],
+                        font=('Segoe UI', 11, 'bold'))
+
+        # Configure status labels
+        style.configure('Status.TLabel',
+                        background=self.colors['bg_medium'],
+                        foreground=self.colors['success'],
+                        font=('Segoe UI', 10, 'bold'))
+
+        # Configure TButton
+        style.configure('TButton',
+                        background=self.colors['accent'],
+                        foreground=self.colors['fg_primary'],
+                        borderwidth=0,
+                        focuscolor=self.colors['accent_hover'],
+                        font=('Segoe UI', 10, 'bold'),
+                        padding=(20, 10))
+        style.map('TButton',
+                  background=[('active', self.colors['accent_hover']),
+                              ('pressed', self.colors['accent_hover'])])
+
+        # Configure TCombobox
+        style.configure('TCombobox',
+                        fieldbackground=self.colors['bg_light'],
+                        background=self.colors['bg_light'],
+                        foreground=self.colors['fg_primary'],
+                        arrowcolor=self.colors['fg_primary'],
+                        borderwidth=1,
+                        relief='flat')
+
+        # Configure TLabelframe
+        style.configure('TLabelframe',
+                        background=self.colors['bg_dark'],
+                        foreground=self.colors['fg_primary'],
+                        borderwidth=1,
+                        relief='solid',
+                        bordercolor=self.colors['border'])
+        style.configure('TLabelframe.Label',
+                        background=self.colors['bg_dark'],
+                        foreground=self.colors['accent'],
+                        font=('Segoe UI', 10, 'bold'))
+
+        # Configure Scrollbar
+        style.configure('Vertical.TScrollbar',
+                        background=self.colors['bg_light'],
+                        troughcolor=self.colors['bg_medium'],
+                        borderwidth=0,
+                        arrowcolor=self.colors['fg_primary'])
+
     def create_widgets(self) -> None:
         """Create all UI widgets."""
-        # Main frame
-        main_frame = ttk.Frame(self.root, padding="20")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        main_frame.grid_columnconfigure(0, weight=1)
-        main_frame.grid_rowconfigure(8, weight=1)
+        # Main container with two columns
+        main_container = ttk.Frame(self.root, padding="25")
+        main_container.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        main_container.grid_columnconfigure(
+            0, weight=1)  # Left column (controls)
+        main_container.grid_columnconfigure(1, weight=1)  # Right column (log)
+        main_container.grid_rowconfigure(0, weight=1)
+
+        # Left panel - controls
+        left_frame = ttk.Frame(main_container)
+        left_frame.grid(row=0, column=0, sticky=(
+            tk.W, tk.E, tk.N, tk.S), padx=(0, 10))
+        left_frame.grid_columnconfigure(0, weight=1)
+        left_frame.grid_rowconfigure(8, weight=1)
 
         # Title
         title_label = ttk.Label(
-            main_frame, text="MacroManager", font=("Helvetica", 16, "bold")
+            left_frame, text="MacroManager", style='Title.TLabel'
         )
-        title_label.grid(row=0, column=0, columnspan=2, pady=(0, 20))
+        title_label.grid(row=0, column=0, columnspan=2, pady=(0, 25))
 
         # Macro selection
         ttk.Label(
-            main_frame, text="Select Macro:", font=("Helvetica", 10, "bold")
-        ).grid(row=1, column=0, sticky=tk.W, pady=5)
+            left_frame, text="Select Macro:", style='Section.TLabel'
+        ).grid(row=1, column=0, sticky=tk.W, pady=(5, 8))
 
-        self.macro_combo = ttk.Combobox(main_frame, width=50, font=("Helvetica", 10))
+        self.macro_combo = ttk.Combobox(
+            left_frame, width=40, font=('Segoe UI', 10))
         self.macro_combo["values"] = get_all_macro_names()
         self.macro_combo.grid(
             row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5, padx=5
@@ -85,13 +192,26 @@ class MainWindow:
             self.macro_combo.current(0)
         self.macro_combo.bind("<<ComboboxSelected>>", self.update_description)
 
+        # Configure combobox styling
+        self.root.option_add(
+            '*TCombobox*Listbox.background', self.colors['bg_light'])
+        self.root.option_add('*TCombobox*Listbox.foreground',
+                             self.colors['fg_primary'])
+        self.root.option_add(
+            '*TCombobox*Listbox.selectBackground', self.colors['accent'])
+        self.root.option_add(
+            '*TCombobox*Listbox.selectForeground', self.colors['fg_primary'])
+
         # Description
         ttk.Label(
-            main_frame, text="Description:", font=("Helvetica", 10, "bold")
-        ).grid(row=3, column=0, sticky=tk.W, pady=5)
+            left_frame, text="Description:", style='Section.TLabel'
+        ).grid(row=3, column=0, sticky=tk.W, pady=(15, 8))
 
         self.description_text = tk.Text(
-            main_frame, height=6, wrap=tk.WORD, font=("Helvetica", 10)
+            left_frame, height=5, wrap=tk.WORD, font=('Segoe UI', 10),
+            bg=self.colors['bg_medium'], fg=self.colors['fg_primary'],
+            borderwidth=1, relief='solid', highlightthickness=0,
+            insertbackground=self.colors['fg_primary'], padx=15, pady=15
         )
         self.description_text.grid(
             row=4, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5, padx=5
@@ -99,112 +219,153 @@ class MainWindow:
         self.description_text.config(state=tk.DISABLED)
 
         # Status frame
-        self._create_status_frame(main_frame, row=5)
+        self._create_status_frame(left_frame, row=5)
 
         # Key bindings frame
-        self._create_keys_frame(main_frame, row=6)
+        self._create_keys_frame(left_frame, row=6)
 
         # Buttons
-        self._create_button_frame(main_frame, row=7)
+        self._create_button_frame(left_frame, row=7)
 
-        # Log frame
-        self._create_log_frame(main_frame, row=8)
+        # Footer (left side)
+        self._create_footer(left_frame, row=8)
 
-        # Footer
-        self._create_footer(main_frame, row=9)
+        # Right panel - log
+        self._create_log_frame(main_container, row=0, column=1)
 
         # Update description
         self.update_description(None)
 
     def _create_status_frame(self, parent: ttk.Frame, row: int) -> None:
         """Create the status display frame."""
-        status_frame = ttk.LabelFrame(parent, text="Status", padding="10")
+        status_frame = ttk.LabelFrame(parent, text="Status", padding="15")
         status_frame.grid(row=row, column=0, columnspan=2,
-                          sticky=(tk.W, tk.E), pady=10, padx=5)
+                          sticky=(tk.W, tk.E), pady=15, padx=5)
         status_frame.grid_columnconfigure(1, weight=1)
 
-        ttk.Label(status_frame, text="Current State:", font=("Helvetica", 10)).grid(
-            row=0, column=0, sticky=tk.W, padx=5
-        )
-        self.status_label = ttk.Label(
-            status_frame, text="Idle", font=("Helvetica", 10, "bold")
-        )
-        self.status_label.grid(row=0, column=1, sticky=tk.W, padx=5)
+        # Status labels with improved styling
+        labels_data = [
+            ("Current State:", "status"),
+            ("Game Window:", "window"),
+            ("Current Step:", "step"),
+            ("Action:", "action")
+        ]
 
-        ttk.Label(status_frame, text="Game Window:", font=("Helvetica", 10)).grid(
-            row=1, column=0, sticky=tk.W, padx=5
-        )
-        self.window_label = ttk.Label(
-            status_frame, text="Not detected", font=("Helvetica", 10)
-        )
-        self.window_label.grid(row=1, column=1, sticky=tk.W, padx=5)
+        for idx, (label_text, attr_name) in enumerate(labels_data):
+            ttk.Label(status_frame, text=label_text,
+                      font=('Segoe UI', 10)).grid(
+                row=idx, column=0, sticky=tk.W, padx=5, pady=5
+            )
 
-        ttk.Label(status_frame, text="Current Step:", font=("Helvetica", 10)).grid(
-            row=2, column=0, sticky=tk.W, padx=5
-        )
-        self.step_label = ttk.Label(status_frame, text="--", font=("Helvetica", 10))
-        self.step_label.grid(row=2, column=1, sticky=tk.W, padx=5)
+            # Create label with appropriate default
+            if attr_name == "status":
+                default_text = "Idle"
+                fg_color = self.colors['fg_secondary']
+            elif attr_name == "window":
+                default_text = "Not detected"
+                fg_color = self.colors['warning']
+            else:
+                default_text = "--"
+                fg_color = self.colors['fg_secondary']
 
-        ttk.Label(status_frame, text="Action:", font=("Helvetica", 10)).grid(
-            row=3, column=0, sticky=tk.W, padx=5
-        )
-        self.action_label = ttk.Label(status_frame, text="--", font=("Helvetica", 10))
-        self.action_label.grid(row=3, column=1, sticky=tk.W, padx=5)
+            label = tk.Label(
+                status_frame, text=default_text,
+                font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg_dark'],
+                fg=fg_color
+            )
+            label.grid(row=idx, column=1, sticky=tk.W, padx=5, pady=5)
+
+            setattr(self, f"{attr_name}_label", label)
 
     def _create_keys_frame(self, parent: ttk.Frame, row: int) -> None:
         """Create the key bindings display frame."""
-        keys_frame = ttk.LabelFrame(parent, text="Controls", padding="10")
+        keys_frame = ttk.LabelFrame(parent, text="Controls", padding="15")
         keys_frame.grid(row=row, column=0, columnspan=2,
-                        sticky=(tk.W, tk.E), pady=10, padx=5)
+                        sticky=(tk.W, tk.E), pady=15, padx=5)
         keys_frame.grid_columnconfigure(0, weight=1)
 
         bindings = self.config.key_bindings
-        key_style = {"font": ("Helvetica", 10)}
 
-        self.start_key_label = ttk.Label(
-            keys_frame, text=f"Start Macro: {bindings['start_key'].upper()}", **key_style
+        # Create key binding displays with styled labels
+        self.start_key_label = tk.Label(
+            keys_frame,
+            text=f"Start Macro: {bindings['start_key'].upper()}",
+            font=('Segoe UI', 10),
+            bg=self.colors['bg_dark'],
+            fg=self.colors['success']
         )
-        self.start_key_label.grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
+        self.start_key_label.grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
 
-        self.stop_key_label = ttk.Label(
-            keys_frame, text=f"Stop Macro: {bindings['stop_key'].upper()}", **key_style
+        self.stop_key_label = tk.Label(
+            keys_frame,
+            text=f"Stop Macro: {bindings['stop_key'].upper()}",
+            font=('Segoe UI', 10),
+            bg=self.colors['bg_dark'],
+            fg=self.colors['error']
         )
-        self.stop_key_label.grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
+        self.stop_key_label.grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
 
-        ttk.Label(keys_frame, text="Change Keys: F12", **key_style).grid(
-            row=2, column=0, sticky=tk.W, padx=5, pady=2
-        )
+        tk.Label(
+            keys_frame,
+            text="Change Keys: F12",
+            font=('Segoe UI', 10),
+            bg=self.colors['bg_dark'],
+            fg=self.colors['accent']
+        ).grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
 
     def _create_button_frame(self, parent: ttk.Frame, row: int) -> None:
         """Create the button control frame."""
         button_frame = ttk.Frame(parent)
-        button_frame.grid(row=row, column=0, columnspan=2, pady=10)
+        button_frame.grid(row=row, column=0, columnspan=2, pady=15)
         button_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
-        button_style = {"width": 15}
+        # Start button
+        self.start_button = tk.Button(
+            button_frame, text="▶ Start", command=self.start_macro,
+            width=12, font=('Segoe UI', 10, 'bold'),
+            bg=self.colors['success'], fg='#ffffff',
+            activebackground='#3da88a', activeforeground='#ffffff',
+            borderwidth=0, relief='flat', cursor='hand2',
+            pady=12
+        )
+        self.start_button.grid(row=0, column=0, padx=5)
 
-        ttk.Button(
-            button_frame, text="Start", command=self.start_macro, **button_style
-        ).grid(row=0, column=0, padx=10)
+        # Stop button
+        self.stop_button = tk.Button(
+            button_frame, text="■ Stop", command=self.stop_macro,
+            width=12, font=('Segoe UI', 10, 'bold'),
+            bg=self.colors['error'], fg='#ffffff',
+            activebackground='#d66f5e', activeforeground='#ffffff',
+            borderwidth=0, relief='flat', cursor='hand2',
+            pady=12
+        )
+        self.stop_button.grid(row=0, column=1, padx=5)
 
-        ttk.Button(
-            button_frame, text="Stop", command=self.stop_macro, **button_style
-        ).grid(row=0, column=1, padx=10)
+        # Change keys button
+        self.change_keys_button = tk.Button(
+            button_frame, text="⚙ Keys", command=self.change_keys,
+            width=12, font=('Segoe UI', 10, 'bold'),
+            bg=self.colors['accent'], fg='#ffffff',
+            activebackground=self.colors['accent_hover'], activeforeground='#ffffff',
+            borderwidth=0, relief='flat', cursor='hand2',
+            pady=12
+        )
+        self.change_keys_button.grid(row=0, column=2, padx=5)
 
-        ttk.Button(
-            button_frame, text="Change Keys", command=self.change_keys, **button_style
-        ).grid(row=0, column=2, padx=10)
-
-    def _create_log_frame(self, parent: ttk.Frame, row: int) -> None:
+    def _create_log_frame(self, parent: ttk.Frame, row: int, column: int = 0) -> None:
         """Create the log output frame."""
-        self.log_frame = ttk.LabelFrame(parent, text="Log", padding="10")
-        self.log_frame.grid(row=row, column=0, columnspan=2, sticky=(
-            tk.W, tk.E, tk.N, tk.S), pady=10, padx=5)
+        self.log_frame = ttk.LabelFrame(parent, text="Log", padding="15")
+        self.log_frame.grid(row=row, column=column, sticky=(
+            tk.W, tk.E, tk.N, tk.S), padx=(10, 0))
         self.log_frame.grid_columnconfigure(0, weight=1)
         self.log_frame.grid_rowconfigure(0, weight=1)
 
         self.log_text = tk.Text(
-            self.log_frame, height=12, wrap=tk.WORD, font=("Helvetica", 10)
+            self.log_frame, width=50, wrap=tk.WORD, font=('Consolas', 9),
+            bg=self.colors['bg_medium'], fg=self.colors['fg_primary'],
+            borderwidth=0, relief='flat', highlightthickness=0,
+            insertbackground=self.colors['fg_primary'], padx=10, pady=10
         )
         self.log_text.grid(row=0, column=0, sticky=(
             tk.W, tk.E, tk.N, tk.S), pady=5, padx=5)
@@ -219,17 +380,21 @@ class MainWindow:
         """Create the footer section."""
         footer_frame = ttk.Frame(parent)
         footer_frame.grid(row=row, column=0, columnspan=2,
-                          sticky=(tk.W, tk.E), pady=(10, 0))
+                          sticky=(tk.W, tk.E, tk.S), pady=(15, 5))
         footer_frame.grid_columnconfigure(0, weight=1)
 
-        ttk.Label(
-            footer_frame, text="Developed by panteLx", font=("Helvetica", 9), anchor="center"
+        tk.Label(
+            footer_frame, text="Developed by panteLx",
+            font=('Segoe UI', 9),
+            bg=self.colors['bg_dark'], fg=self.colors['fg_secondary'],
+            anchor="center"
         ).grid(row=0, column=0, sticky=(tk.W, tk.E))
 
-        ttk.Label(
+        tk.Label(
             footer_frame,
             text="© 2025 MacroManager - MIT License",
-            font=("Helvetica", 8),
+            font=('Segoe UI', 8),
+            bg=self.colors['bg_dark'], fg=self.colors['fg_secondary'],
             anchor="center",
         ).grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(2, 0))
 
@@ -249,8 +414,10 @@ class MainWindow:
         keyboard.unhook_all()
         bindings = self.config.key_bindings
 
-        keyboard.on_press_key(bindings["start_key"], lambda _: self.start_macro())
-        keyboard.on_press_key(bindings["stop_key"], lambda _: self.stop_macro())
+        keyboard.on_press_key(
+            bindings["start_key"], lambda _: self.start_macro())
+        keyboard.on_press_key(
+            bindings["stop_key"], lambda _: self.stop_macro())
         keyboard.on_press_key("f12", lambda _: self.change_keys())
 
         logger.info(f"Key bindings set: {bindings}")
@@ -258,7 +425,8 @@ class MainWindow:
     def update_status(self, current_step: str, total_steps: str, message: str) -> None:
         """Update GUI status labels."""
         self.root.after(
-            0, lambda: self._update_gui_status(current_step, total_steps, message)
+            0, lambda: self._update_gui_status(
+                current_step, total_steps, message)
         )
 
     def _update_gui_status(self, current_step: str, total_steps: str, message: str) -> None:
@@ -305,10 +473,10 @@ class MainWindow:
         sys.stdout = stdout_redirector
         sys.stderr = stdout_redirector
 
-        # Start macro
+        # Try to find game window
         try:
             self.controller.start_macro(macro, game_window)
-            self.status_label.config(text="Running")
+            self.status_label.config(text="Running", fg=self.colors['success'])
             self.step_label.config(text="--")
             self.action_label.config(text="Starting...")
             logger.info(f"Started macro: {macro.name}")
@@ -319,7 +487,7 @@ class MainWindow:
     def stop_macro(self) -> None:
         """Stop the running macro."""
         self.controller.stop_macro()
-        self.status_label.config(text="Stopped")
+        self.status_label.config(text="Stopped", fg=self.colors['error'])
         self.step_label.config(text="--")
         self.action_label.config(text="Stopped")
         logger.info("Macro stopped")
@@ -348,10 +516,10 @@ class MainWindow:
 
         # Update UI labels
         self.start_key_label.config(
-            text=f"Start Macro: {new_bindings['start_key'].upper()}"
+            text=f"▶ Start Macro: {new_bindings['start_key'].upper()}"
         )
         self.stop_key_label.config(
-            text=f"Stop Macro: {new_bindings['stop_key'].upper()}"
+            text=f"■ Stop Macro: {new_bindings['stop_key'].upper()}"
         )
 
         messagebox.showinfo("Success", "Key bindings updated successfully!")

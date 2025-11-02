@@ -21,30 +21,53 @@ class KeyBindingDialog:
         self.current_key: Optional[str] = None
         self.capturing = False
 
+        # Color scheme (matching main window)
+        self.colors = {
+            'bg_dark': '#1e1e1e',
+            'bg_medium': '#2d2d2d',
+            'bg_light': '#3e3e3e',
+            'fg_primary': '#ffffff',
+            'fg_secondary': '#b0b0b0',
+            'accent': '#007acc',
+            'accent_hover': '#005a9e',
+            'success': '#4ec9b0',
+            'warning': '#ce9178',
+            'error': '#f48771',
+            'border': '#555555'
+        }
+
         # Create dialog
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Change Key Bindings")
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
+        self.dialog.configure(bg=self.colors['bg_dark'])
+
+        # Apply dark theme
+        self._apply_dark_theme()
 
         # Main frame
-        main_frame = ttk.Frame(self.dialog, padding="20")
+        main_frame = ttk.Frame(self.dialog, padding="25")
         main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
         # Title
-        ttk.Label(
+        tk.Label(
             main_frame,
-            text="Configure Key Bindings",
-            font=("Helvetica", 14, "bold"),
+            text="⚙ Configure Key Bindings",
+            font=('Segoe UI', 14, 'bold'),
+            bg=self.colors['bg_dark'],
+            fg=self.colors['accent']
         ).grid(row=0, column=0, columnspan=2, pady=(0, 15))
 
         # Instructions
-        ttk.Label(
+        tk.Label(
             main_frame,
             text="Click the button and press the key you want to assign.\n"
             "Avoid using ESC or system keys.",
-            font=("Helvetica", 10),
+            font=('Segoe UI', 10),
+            bg=self.colors['bg_dark'],
+            fg=self.colors['fg_secondary'],
             justify=tk.CENTER,
         ).grid(row=1, column=0, columnspan=2, pady=(0, 20))
 
@@ -59,11 +82,12 @@ class KeyBindingDialog:
         )
 
         # Status label
-        self.status_label = ttk.Label(
+        self.status_label = tk.Label(
             main_frame,
             text="",
-            font=("Helvetica", 10, "italic"),
-            foreground="blue",
+            font=('Segoe UI', 10, 'italic'),
+            bg=self.colors['bg_dark'],
+            fg=self.colors['accent'],
         )
         self.status_label.grid(row=4, column=0, columnspan=2, pady=15)
 
@@ -71,14 +95,25 @@ class KeyBindingDialog:
         button_frame = ttk.Frame(main_frame)
         button_frame.grid(row=5, column=0, columnspan=2, pady=(15, 0))
 
-        self.save_button = ttk.Button(
-            button_frame, text="Save Changes", command=self.save_changes, state="disabled"
+        self.save_button = tk.Button(
+            button_frame, text="✓ Save Changes", command=self.save_changes,
+            state="disabled", font=('Segoe UI', 10, 'bold'),
+            bg=self.colors['success'], fg='#ffffff',
+            activebackground='#3da88a', activeforeground='#ffffff',
+            borderwidth=0, relief='flat', cursor='hand2',
+            padx=20, pady=10
         )
         self.save_button.grid(row=0, column=0, padx=10)
 
-        ttk.Button(button_frame, text="Cancel", command=self.cancel).grid(
-            row=0, column=1, padx=10
+        cancel_button = tk.Button(
+            button_frame, text="✕ Cancel", command=self.cancel,
+            font=('Segoe UI', 10, 'bold'),
+            bg=self.colors['bg_light'], fg=self.colors['fg_primary'],
+            activebackground=self.colors['bg_medium'], activeforeground=self.colors['fg_primary'],
+            borderwidth=0, relief='flat', cursor='hand2',
+            padx=20, pady=10
         )
+        cancel_button.grid(row=0, column=1, padx=10)
 
         # Store new bindings
         self.new_bindings = current_bindings.copy()
@@ -91,46 +126,85 @@ class KeyBindingDialog:
         y = (self.dialog.winfo_screenheight() // 2) - (height // 2)
         self.dialog.geometry(f"{width}x{height}+{x}+{y}")
 
+    def _apply_dark_theme(self) -> None:
+        """Apply dark theme to dialog widgets."""
+        style = ttk.Style()
+        style.theme_use('clam')
+
+        style.configure('Dialog.TFrame',
+                        background=self.colors['bg_dark'])
+        style.configure('Dialog.TLabel',
+                        background=self.colors['bg_dark'],
+                        foreground=self.colors['fg_primary'],
+                        font=('Segoe UI', 10))
+        style.configure('Dialog.TLabelframe',
+                        background=self.colors['bg_dark'],
+                        foreground=self.colors['fg_primary'],
+                        borderwidth=1,
+                        relief='solid',
+                        bordercolor=self.colors['border'])
+        style.configure('Dialog.TLabelframe.Label',
+                        background=self.colors['bg_dark'],
+                        foreground=self.colors['accent'],
+                        font=('Segoe UI', 10, 'bold'))
+
     def _create_key_section(
         self, parent: ttk.Frame, title: str, key_type: str, current_key: str, row: int
     ) -> None:
         """Create a key configuration section."""
-        frame = ttk.LabelFrame(parent, text=title, padding="15")
-        frame.grid(row=row, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=8)
+        frame = ttk.LabelFrame(
+            parent, text=title, padding="15", style='Dialog.TLabelframe')
+        frame.grid(row=row, column=0, columnspan=2,
+                   sticky=(tk.W, tk.E), pady=8)
 
-        ttk.Label(frame, text="Current:", font=("Helvetica", 10)).grid(
-            row=0, column=0, sticky=tk.W, padx=5
-        )
+        tk.Label(
+            frame, text="Current:", font=('Segoe UI', 10),
+            bg=self.colors['bg_dark'], fg=self.colors['fg_secondary']
+        ).grid(row=0, column=0, sticky=tk.W, padx=5)
 
         # Store label references
         if key_type == "start":
-            self.start_current_label = ttk.Label(
-                frame, text=current_key.upper(), font=("Helvetica", 10, "bold")
+            self.start_current_label = tk.Label(
+                frame, text=current_key.upper(), font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg_dark'], fg=self.colors['success']
             )
             self.start_current_label.grid(row=0, column=1, sticky=tk.W, padx=5)
 
-            self.start_button = ttk.Button(
-                frame, text="Set New Key", command=lambda: self.capture_key("start")
+            self.start_button = tk.Button(
+                frame, text="Set New Key", command=lambda: self.capture_key("start"),
+                font=('Segoe UI', 9, 'bold'),
+                bg=self.colors['accent'], fg='#ffffff',
+                activebackground=self.colors['accent_hover'], activeforeground='#ffffff',
+                borderwidth=0, relief='flat', cursor='hand2',
+                padx=15, pady=8
             )
             self.start_button.grid(row=0, column=2, padx=10)
 
-            self.start_new_label = ttk.Label(
-                frame, text="", font=("Helvetica", 10, "bold"), foreground="green"
+            self.start_new_label = tk.Label(
+                frame, text="", font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg_dark'], fg=self.colors['success']
             )
             self.start_new_label.grid(row=0, column=3, sticky=tk.W, padx=5)
         else:
-            self.stop_current_label = ttk.Label(
-                frame, text=current_key.upper(), font=("Helvetica", 10, "bold")
+            self.stop_current_label = tk.Label(
+                frame, text=current_key.upper(), font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg_dark'], fg=self.colors['error']
             )
             self.stop_current_label.grid(row=0, column=1, sticky=tk.W, padx=5)
 
-            self.stop_button = ttk.Button(
-                frame, text="Set New Key", command=lambda: self.capture_key("stop")
+            self.stop_button = tk.Button(
+                frame, text="Set New Key", command=lambda: self.capture_key("stop"),
+                font=('Segoe UI', 9, 'bold'),
+                bg=self.colors['accent'], fg='#ffffff',
+                activebackground=self.colors['accent_hover'], activeforeground='#ffffff',
+                borderwidth=0, relief='flat', cursor='hand2',
+                padx=15, pady=8
             )
             self.stop_button.grid(row=0, column=2, padx=10)
 
-            self.stop_new_label = ttk.Label(
-                frame, text="", font=("Helvetica", 10, "bold"), foreground="green"
+            self.stop_new_label = tk.Label(
+                frame, text="", font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg_dark'], fg=self.colors['error']
             )
             self.stop_new_label.grid(row=0, column=3, sticky=tk.W, padx=5)
 
@@ -149,12 +223,12 @@ class KeyBindingDialog:
         if key_type == "start":
             self.start_button.config(state="disabled")
             self.status_label.config(
-                text="Press a key for START macro...", foreground="blue"
+                text="⌨ Press a key for START macro...", fg=self.colors['accent']
             )
         else:
             self.stop_button.config(state="disabled")
             self.status_label.config(
-                text="Press a key for STOP macro...", foreground="blue"
+                text="⌨ Press a key for STOP macro...", fg=self.colors['accent']
             )
 
         keyboard.on_press(self.on_key_press, suppress=True)
@@ -173,8 +247,8 @@ class KeyBindingDialog:
         # Ignore ESC
         if key_name in ["esc", "escape"]:
             self.status_label.config(
-                text="ESC is not allowed. Please choose another key.",
-                foreground="red",
+                text="⚠ ESC is not allowed. Please choose another key.",
+                fg=self.colors['error']
             )
             self.capturing = False
             keyboard.unhook_all()
@@ -194,8 +268,8 @@ class KeyBindingDialog:
             self.stop_button.config(state="normal")
 
         self.status_label.config(
-            text=f"Key '{key_name.upper()}' assigned successfully!",
-            foreground="green",
+            text=f"✓ Key '{key_name.upper()}' assigned successfully!",
+            fg=self.colors['success']
         )
 
         # Enable save button

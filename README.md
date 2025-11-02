@@ -72,7 +72,6 @@ On first launch, you'll be prompted to configure your hotkeys:
 
 - **Start Macro**: Default F1 (customizable)
 - **Stop Macro**: Default F2 (customizable)
-- **Change Keys**: F12
 
 Settings are saved in `config/macro_config.json` and persist between sessions.
 
@@ -101,7 +100,7 @@ You can now create your own macros by recording your keyboard actions!
 6. **Click "Save Macro"** and provide:
    - A name for your macro
    - A description (optional)
-   - Whether it should loop continuously or run once
+   - Whether it should loop continuously, loop a set number of times or run once
 7. **Your custom macro is now available** in the macro dropdown!
 
 **Tips for Recording:**
@@ -130,26 +129,40 @@ You can now create your own macros by recording your keyboard actions!
 
 ### Pre-built Macros
 
-#### Battlefield 6 - Siege of Cairo AFK
+#### Battlefield 6 - Siege of Cairo
 
 Automates capturing objectives in the Siege of Cairo game mode.
 
 - **Portal Code**: YVNDS
 - **Tutorial**: [YouTube](https://youtu.be/LH_Gj87xodI?si=GJvNM4reqZoQxJ7f&t=161)
 
-#### Battlefield 6 - Liberation Peak AFK
+#### Battlefield 6 - Liberation Peak
 
 Automates capturing objectives in the Liberation Peak game mode.
 
 - **Portal Code**: YWVXU
 - **Tutorial**: [YouTube](https://youtu.be/TTv9BSTzFTg?si=fdGpfcFno4Y9w3cI&t=61)
 
-#### Battlefield 6 - Space Bar AFK
+#### Battlefield 6 - Space Bar
 
 Simple space bar automation macro.
 
 - **Portal Code**: YRV4A
 - **Description**: Repeatedly presses space bar
+
+#### Battlefield 6 - MCOM Attack
+
+Automates attacking sequence around MCOM objectives in Battlefield 6.
+
+- Portal Code: YVMFR
+- Tutorial: [Youtube](https://www.youtube.com/watch?v=LH_Gj87xodI)
+
+#### Battlefield 6 - MCOM Defending
+
+Automates defending sequence around MCOM objectives in Battlefield 6.
+
+- Portal Code: YVMFR
+- Tutorial: [Youtube](https://www.youtube.com/watch?v=LH_Gj87xodI)
 
 ### Custom Recorded Macros
 
@@ -160,7 +173,7 @@ You can create your own custom macros using the Record feature! Custom macros ar
 - **Fully customizable** - record any sequence of keyboard actions
 - **Deletable** - remove custom macros you no longer need
 
-Custom macros can either loop continuously (like the prebuilt ones) or run once and stop.
+Custom macros can either loop continuously, loop a set number of times or run once and stop.
 
 ## ⚠️ Disclaimer
 

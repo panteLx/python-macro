@@ -1,0 +1,44 @@
+{
+  "name": "[PREBUILT] Battlefield 6 MCOM Defending Side",
+  "description": "MCOM Defending Side AFK Macro for Battlefield 6. Portal Code: YVMFR - Tutorial: https://www.youtube.com/watch?v=LH_Gj87xodI",
+  "actions": [
+    {
+      "type": "keyhold",
+      "key": "q",
+      "duration": 0.02
+    },
+    {
+      "type": "sleep",
+      "delay": 0.25
+    },
+    {
+      "type": "keyhold",
+      "key": "e",
+      "duration": 0.05
+    },
+    {
+      "type": "sleep",
+      "delay": 0.22
+    },
+    {
+      "type": "keyhold",
+      "key": "q",
+      "duration": 0.05
+    },
+    {
+      "type": "sleep",
+      "delay": 0.25
+    },
+    {
+      "type": "keyhold",
+      "key": "x",
+      "duration": 0.05
+    },
+    {
+      "type": "sleep",
+      "delay": 4.3
+    }
+  ],
+  "loop": true,
+  "loop_count": null
+}

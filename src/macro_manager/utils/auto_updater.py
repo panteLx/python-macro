@@ -279,6 +279,7 @@ def download_and_install_update(download_url: str, version: str) -> bool:
             logger.info(f"Installing update to {app_root}")
 
             # List of files/folders to update - these will be completely replaced
+            # Note: 'logs' directory at root level is never touched by the updater
             items_to_update = [
                 'src',
                 'main.py',
@@ -294,11 +295,11 @@ def download_and_install_update(download_url: str, version: str) -> bool:
 
             # Define ignore patterns for copying
             def ignore_patterns(directory, contents):
-                """Ignore logs and __pycache__ directories during copy."""
+                """Ignore __pycache__ directories during copy."""
                 ignored = []
                 for item in contents:
-                    # Ignore logs directory and __pycache__
-                    if item in ['logs', '__pycache__']:
+                    # Ignore __pycache__
+                    if item in ['__pycache__']:
                         ignored.append(item)
                     # Also ignore .pyc files
                     elif item.endswith('.pyc'):
@@ -336,7 +337,7 @@ def download_and_install_update(download_url: str, version: str) -> bool:
                             f"Skipping backup of {item_name} (will be overlaid)")
 
                 # Completely remove old item before copying new one
-                # Special handling for 'src' directory to avoid locked log files
+                # Special handling for 'src' directory to overlay existing files
                 if dest_item.exists() and item_name != 'src':
                     if dest_item.is_dir():
                         logger.info(f"Removing old {item_name} directory...")
@@ -344,17 +345,12 @@ def download_and_install_update(download_url: str, version: str) -> bool:
                     else:
                         logger.info(f"Removing old {item_name} file...")
                         dest_item.unlink()
-                elif dest_item.exists() and item_name == 'src':
-                    # For src, clean everything except logs directory
-                    logger.info(
-                        f"Cleaning {item_name} directory (preserving logs)...")
-                    clean_directory_except(dest_item, preserve_dirs=['logs'])
 
                 # Copy new item
                 if source_item.is_dir():
                     if item_name == 'src':
                         # For src directory, use dirs_exist_ok to overlay files
-                        # This avoids issues with locked log files
+                        # This avoids issues with locked files
                         logger.info(f"Updating {item_name} directory...")
                         shutil.copytree(source_item, dest_item,
                                         ignore=ignore_patterns,

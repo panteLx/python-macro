@@ -23,7 +23,21 @@ A customizable macro tool for automating repetitive actions in games. Easy to se
 
 ## 🚀 Quick Setup
 
+### Option 1: Download as ZIP (No Git Required)
+
 1. **Download the repository**
+
+   - Click the green **"Code"** button at the top of this page
+   - Select **"Download ZIP"**
+   - Extract the ZIP file to a folder of your choice (e.g., `C:\MacroManager`)
+
+2. **Run the app**
+   - Navigate to the extracted folder
+   - Double-click `start_macromanager.bat`
+
+### Option 2: Using Git
+
+1. **Clone the repository**
 
    ```bash
    git clone https://github.com/panteLx/MacroManager.git
@@ -48,7 +62,9 @@ That's it! The first time you run it, it will automatically:
 
 ### Starting the Application
 
-Just run `start_macromanager.bat` - it handles everything automatically!### First-Time Setup
+Just run `start_macromanager.bat` - it handles everything automatically!
+
+### First-Time Setup
 
 On first launch, you'll be prompted to configure your hotkeys:
 

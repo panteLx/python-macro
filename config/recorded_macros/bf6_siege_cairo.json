@@ -53,5 +53,6 @@
       "delay": 30
     }
   ],
-  "loop": true
+  "loop": true,
+  "loop_count": null
 }

@@ -307,12 +307,89 @@ class MainWindow:
             row=2, column=0, columnspan=4, sticky=(tk.W, tk.E), pady=8
         )
 
+        # Loop Controls Section
+        ttk.Label(combined_frame, text="Loop Settings:",
+                  font=('Segoe UI', 9, 'bold')).grid(
+            row=3, column=0, columnspan=4, sticky=tk.W, padx=3, pady=(0, 5)
+        )
+
+        # Loop checkbox
+        self.loop_var = tk.BooleanVar(value=True)
+        self.loop_checkbox = tk.Checkbutton(
+            combined_frame,
+            text="Enable Looping",
+            variable=self.loop_var,
+            command=self._on_loop_changed,
+            font=('Segoe UI', 9),
+            bg=self.colors['bg_dark'],
+            fg=self.colors['fg_primary'],
+            selectcolor=self.colors['bg_light'],
+            activebackground=self.colors['bg_dark'],
+            activeforeground=self.colors['fg_primary'],
+            cursor='hand2'
+        )
+        self.loop_checkbox.grid(row=4, column=0, columnspan=2,
+                                sticky=tk.W, padx=3, pady=3)
+
+        # Loop count frame
+        loop_count_frame = ttk.Frame(combined_frame)
+        loop_count_frame.grid(
+            row=4, column=2, columnspan=2, sticky=tk.W, padx=3, pady=3)
+
+        ttk.Label(loop_count_frame, text="Repeat:",
+                  font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(0, 5))
+
+        # Loop count spinbox
+        self.loop_count_var = tk.StringVar(value="∞")
+        self.loop_count_spinbox = tk.Spinbox(
+            loop_count_frame,
+            from_=1,
+            to=9999,
+            width=8,
+            textvariable=self.loop_count_var,
+            font=('Segoe UI', 9),
+            bg=self.colors['bg_light'],
+            fg=self.colors['fg_primary'],
+            buttonbackground=self.colors['bg_medium'],
+            insertbackground=self.colors['fg_primary'],
+            relief='flat',
+            validate='key',
+            validatecommand=(self.root.register(
+                self._validate_loop_count), '%P')
+        )
+        self.loop_count_spinbox.pack(side=tk.LEFT, padx=(0, 5))
+
+        # Infinite checkbox
+        self.loop_infinite_var = tk.BooleanVar(value=True)
+        self.loop_infinite_checkbox = tk.Checkbutton(
+            loop_count_frame,
+            text="∞",
+            variable=self.loop_infinite_var,
+            command=self._on_infinite_changed,
+            font=('Segoe UI', 9),
+            bg=self.colors['bg_dark'],
+            fg=self.colors['fg_primary'],
+            selectcolor=self.colors['bg_light'],
+            activebackground=self.colors['bg_dark'],
+            activeforeground=self.colors['fg_primary'],
+            cursor='hand2'
+        )
+        self.loop_infinite_checkbox.pack(side=tk.LEFT)
+
+        # Initialize spinbox state
+        self._on_infinite_changed()
+
+        # Separator
+        ttk.Separator(combined_frame, orient='horizontal').grid(
+            row=5, column=0, columnspan=4, sticky=(tk.W, tk.E), pady=8
+        )
+
         # Key bindings section - compact (only show start/stop) - centered
         bindings = self.config.key_bindings
 
         # Create a container for centered key bindings
         keys_container = ttk.Frame(combined_frame)
-        keys_container.grid(row=3, column=0, columnspan=4,
+        keys_container.grid(row=6, column=0, columnspan=4,
                             sticky=(tk.W, tk.E), pady=3)
         keys_container.grid_columnconfigure(0, weight=1)
         keys_container.grid_columnconfigure(1, weight=0)
@@ -516,6 +593,66 @@ class MainWindow:
             anchor="center"
         ).grid(row=0, column=0, sticky=(tk.W, tk.E))
 
+    def _validate_loop_count(self, value: str) -> bool:
+        """Validate loop count input.
+
+        Args:
+            value: Input value to validate.
+
+        Returns:
+            True if valid, False otherwise.
+        """
+        if value == "" or value == "∞":
+            return True
+        try:
+            int_val = int(value)
+            return 1 <= int_val <= 9999
+        except ValueError:
+            return False
+
+    def _on_loop_changed(self) -> None:
+        """Handle loop checkbox state change."""
+        is_looping = self.loop_var.get()
+
+        # Enable/disable loop count controls
+        state = tk.NORMAL if is_looping else tk.DISABLED
+        self.loop_count_spinbox.config(state=state)
+        self.loop_infinite_checkbox.config(state=state)
+
+    def _on_infinite_changed(self) -> None:
+        """Handle infinite loop checkbox state change."""
+        is_infinite = self.loop_infinite_var.get()
+
+        if is_infinite:
+            self.loop_count_var.set("∞")
+            self.loop_count_spinbox.config(state=tk.DISABLED)
+        else:
+            self.loop_count_var.set("1")
+            self.loop_count_spinbox.config(state=tk.NORMAL)
+
+    def _get_loop_settings(self) -> tuple:
+        """Get current loop settings from GUI.
+
+        Returns:
+            Tuple of (loop: bool, loop_count: int or None)
+        """
+        loop = self.loop_var.get()
+
+        if not loop:
+            return (False, None)
+
+        if self.loop_infinite_var.get():
+            return (True, None)
+
+        try:
+            count_str = self.loop_count_var.get()
+            if count_str == "∞":
+                return (True, None)
+            loop_count = int(count_str)
+            return (True, loop_count if loop_count > 0 else None)
+        except (ValueError, AttributeError):
+            return (True, None)
+
     def update_description(self, event) -> None:
         """Update the macro description display."""
         selected_name = self.macro_combo.get()
@@ -526,6 +663,31 @@ class MainWindow:
         if selected_macro:
             self.description_text.insert(tk.END, selected_macro.description)
         self.description_text.config(state=tk.DISABLED)
+
+        # Update loop settings from selected macro if it's a RecordedMacro
+        from macro_manager.macros.recorded_macro import RecordedMacro
+        if isinstance(selected_macro, RecordedMacro):
+            # Set loop checkbox
+            self.loop_var.set(selected_macro.loop)
+
+            # Set loop count
+            if selected_macro.loop_count is None:
+                self.loop_infinite_var.set(True)
+                self.loop_count_var.set("∞")
+            else:
+                self.loop_infinite_var.set(False)
+                self.loop_count_var.set(str(selected_macro.loop_count))
+
+            # Update UI state
+            self._on_loop_changed()
+            self._on_infinite_changed()
+        else:
+            # Reset to defaults for non-recorded macros
+            self.loop_var.set(True)
+            self.loop_infinite_var.set(True)
+            self.loop_count_var.set("∞")
+            self._on_loop_changed()
+            self._on_infinite_changed()
 
     def set_key_bindings(self) -> None:
         """Set up keyboard shortcuts."""
@@ -600,6 +762,20 @@ class MainWindow:
             messagebox.showerror("Error", "Please select a macro first!")
             logger.error("No macro selected")
             return
+
+        # Apply loop settings from GUI to RecordedMacro instances
+        from macro_manager.macros.recorded_macro import RecordedMacro
+        if isinstance(macro, RecordedMacro):
+            loop, loop_count = self._get_loop_settings()
+            macro.set_loop(loop, loop_count)
+
+            # Log the settings
+            if not loop:
+                logger.info("Loop settings: Run once")
+            elif loop_count is None:
+                logger.info("Loop settings: Infinite loop")
+            else:
+                logger.info(f"Loop settings: Loop {loop_count} times")
 
         # Clear log
         self.log_text.delete(1.0, tk.END)

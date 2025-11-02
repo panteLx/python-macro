@@ -29,14 +29,20 @@ class RecordedMacro(Macro):
         super().__init__(name, description)
         self.actions = actions
         self.loop = True  # Whether to loop the macro
+        self.loop_count = None  # None for infinite, integer for specific count
 
-    def set_loop(self, loop: bool) -> None:
-        """Set whether the macro should loop.
+    def set_loop(self, loop: bool, loop_count: int = None) -> None:
+        """Set whether the macro should loop and how many times.
 
         Args:
-            loop: True to loop continuously, False to run once.
+            loop: True to loop, False to run once.
+            loop_count: Number of times to loop (None for infinite, integer for specific count).
         """
         self.loop = loop
+        if loop and loop_count is not None and loop_count > 0:
+            self.loop_count = loop_count
+        else:
+            self.loop_count = None
 
     def run(self, game_window: Any, running: threading.Event) -> None:
         """Execute the recorded macro actions.
@@ -50,13 +56,32 @@ class RecordedMacro(Macro):
         """
         total_steps = len(self.actions)
 
+        # Determine max iterations
+        if not self.loop:
+            max_iterations = 1
+        elif self.loop_count is not None and self.loop_count > 0:
+            max_iterations = self.loop_count
+        else:
+            max_iterations = None  # Infinite
+
         # Run once or loop
         iteration = 0
         while running.is_set():
             iteration += 1
-            if self.loop:
+
+            # Check if we've reached the max iterations
+            if max_iterations is not None and iteration > max_iterations:
+                self.update_status(
+                    f"Completed {max_iterations} loop(s)!", total_steps, total_steps)
+                return
+
+            # Status message
+            if self.loop and max_iterations is None:
                 self.update_status(
                     f"Starting recorded macro (Loop {iteration})...", total_steps, 0)
+            elif self.loop and max_iterations is not None:
+                self.update_status(
+                    f"Starting recorded macro (Loop {iteration}/{max_iterations})...", total_steps, 0)
             else:
                 self.update_status(
                     "Starting recorded macro...", total_steps, 0)
@@ -116,7 +141,8 @@ class RecordedMacro(Macro):
             "name": self.name,
             "description": self.description,
             "actions": self.actions,
-            "loop": self.loop
+            "loop": self.loop,
+            "loop_count": self.loop_count
         }
 
     @classmethod
@@ -134,5 +160,7 @@ class RecordedMacro(Macro):
             description=data.get("description", "Custom recorded macro"),
             actions=data["actions"]
         )
-        macro.set_loop(data.get("loop", True))
+        loop = data.get("loop", True)
+        loop_count = data.get("loop_count", None)
+        macro.set_loop(loop, loop_count)
         return macro

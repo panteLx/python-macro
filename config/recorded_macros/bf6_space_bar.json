@@ -8,8 +8,9 @@
     },
     {
       "type": "sleep",
-      "delay": 30
+      "delay": 3
     }
   ],
-  "loop": true
+  "loop": true,
+  "loop_count": null
 }

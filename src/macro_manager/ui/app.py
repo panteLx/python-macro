@@ -45,30 +45,38 @@ class MacroManagerApp:
 
         logger.info("Starting MacroManager application")
 
-        # Create root window (initially hidden)
+        # Create root window
         self.root = tk.Tk()
-        self.root.withdraw()  # Hide until update check is complete
+        self.root.title("MacroManager")
 
-        # Check for updates before showing main window
-        self._check_for_updates()
+        # Store update info to check after window is ready
+        self.pending_update = None
 
-        # Show main window
-        self.root.deiconify()
+        # Configure root window geometry (small, off-screen initially)
+        self.root.geometry("1x1+0+0")
+        self.root.attributes('-alpha', 0.0)  # Make invisible
+
+        # Check for updates (non-blocking)
+        self.pending_update = check_for_updates()
+
+        # Restore window visibility and create main window
+        self.root.attributes('-alpha', 1.0)
         self.main_window = MainWindow(self.root, self.config)
 
         # Set up cleanup on close
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    def _check_for_updates(self):
-        """Check for updates and prompt user if available."""
-        try:
-            update_info = check_for_updates()
+        # Schedule update check dialog after main loop starts
+        if self.pending_update is not None:
+            self.root.after(100, self._show_update_dialog)
 
-            if update_info is None:
-                # No update available or check failed
+    def _show_update_dialog(self):
+        """Show the update dialog after main window is ready."""
+        try:
+            if self.pending_update is None:
                 return
 
-            version, download_url, release_notes = update_info
+            version, download_url, release_notes = self.pending_update
 
             # Show update dialog
             def on_update():
@@ -76,11 +84,23 @@ class MacroManagerApp:
                 # Show progress dialog
                 progress_dialog = show_update_progress(self.root)
 
-                # Download and install update
-                success = download_and_install_update(download_url, version)
+                # Process pending events to show the progress dialog
+                self.root.update()
+
+                # Download and install update (this runs synchronously)
+                try:
+                    success = download_and_install_update(
+                        download_url, version)
+                except Exception as e:
+                    logger.error(
+                        f"Update installation failed: {e}", exc_info=True)
+                    success = False
 
                 # Close progress dialog
-                progress_dialog.destroy()
+                try:
+                    progress_dialog.destroy()
+                except:
+                    pass
 
                 if success:
                     # Clean up old backups
@@ -109,7 +129,7 @@ class MacroManagerApp:
             dialog.show()
 
         except Exception as e:
-            logger.error(f"Error during update check: {e}", exc_info=True)
+            logger.error(f"Error showing update dialog: {e}", exc_info=True)
 
     def _restart_application(self):
         """Restart the application."""

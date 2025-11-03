@@ -19,7 +19,8 @@ class Config:
         "stop_key": "f2",
         "log_level": "INFO",
         "window_width": 1000,
-        "window_height": 800,
+        "window_height": 820,
+        "update_channel": "stable",
     }
 
     def __init__(self, config_dir: Optional[Path] = None):

@@ -65,7 +65,8 @@ class MacroManagerApp:
         self.root.attributes('-alpha', 0.0)  # Make invisible
 
         # Check for updates (non-blocking)
-        self.pending_update = check_for_updates()
+        update_channel = self.config.get("update_channel", "stable")
+        self.pending_update = check_for_updates(channel=update_channel)
 
         # Restore window visibility and create main window
         self.root.attributes('-alpha', 1.0)
@@ -147,8 +148,11 @@ class MacroManagerApp:
         try:
             logger.info("Manual update check triggered")
 
+            # Get update channel from config
+            update_channel = self.config.get("update_channel", "stable")
+
             # Check for updates
-            update_info = check_for_updates()
+            update_info = check_for_updates(channel=update_channel)
 
             if update_info is None:
                 # No updates available

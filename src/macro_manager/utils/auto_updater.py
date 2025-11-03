@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 # GitHub repository information
 GITHUB_OWNER = "panteLx"
 GITHUB_REPO = "MacroManager"
-GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
+GITHUB_API_URL_LATEST = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
+GITHUB_API_URL_ALL = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases"
 CURRENT_VERSION_FILE = Path(__file__).resolve(
 ).parent.parent.parent.parent / "VERSION"
 
@@ -84,24 +85,48 @@ def compare_versions(version1: str, version2: str) -> int:
     return 0
 
 
-def check_for_updates() -> Optional[Tuple[str, str, str]]:
+def check_for_updates(channel: str = 'stable') -> Optional[Tuple[str, str, str]]:
     """
     Check GitHub for new releases.
+
+    Args:
+        channel: Update channel to check ('stable' or 'beta')
+                'stable' checks only official releases
+                'beta' checks pre-releases as well
 
     Returns:
         Tuple of (version, download_url, release_notes) if update available, None otherwise
     """
     try:
-        logger.info("Checking for updates...")
+        logger.info(f"Checking for updates on {channel} channel...")
+
+        # Determine which API endpoint to use
+        if channel == 'beta':
+            # For beta, get all releases and find the latest (including pre-releases)
+            api_url = GITHUB_API_URL_ALL
+        else:
+            # For stable, get only the latest non-pre-release
+            api_url = GITHUB_API_URL_LATEST
 
         # Make request to GitHub API
-        req = urllib.request.Request(GITHUB_API_URL)
+        req = urllib.request.Request(api_url)
         req.add_header('User-Agent', 'MacroManager-AutoUpdater')
 
         with urllib.request.urlopen(req, timeout=10) as response:
             data = json.loads(response.read().decode())
 
-        latest_version = data.get('tag_name', '').lstrip('v')
+        # Handle different response formats
+        if channel == 'beta' and isinstance(data, list):
+            # For beta channel, get the first release (latest, including pre-releases)
+            if not data:
+                logger.info("No releases found")
+                return None
+            latest_release = data[0]
+        else:
+            # For stable channel, data is a single release object
+            latest_release = data
+
+        latest_version = latest_release.get('tag_name', '').lstrip('v')
         current_version = get_current_version()
 
         logger.info(
@@ -110,10 +135,14 @@ def check_for_updates() -> Optional[Tuple[str, str, str]]:
         # Check if update is available
         if compare_versions(current_version, latest_version) < 0:
             # Find the zipball URL
-            download_url = data.get('zipball_url')
-            release_notes = data.get('body', 'No release notes available.')
+            download_url = latest_release.get('zipball_url')
+            release_notes = latest_release.get(
+                'body', 'No release notes available.')
+            is_prerelease = latest_release.get('prerelease', False)
 
-            logger.info(f"Update available: {latest_version}")
+            # Add channel info to log
+            release_type = "pre-release" if is_prerelease else "release"
+            logger.info(f"Update available: {latest_version} ({release_type})")
             return (latest_version, download_url, release_notes)
         else:
             logger.info("No updates available")

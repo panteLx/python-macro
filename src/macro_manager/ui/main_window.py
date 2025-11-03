@@ -48,8 +48,8 @@ class MainWindow:
 
         # Configure window - optimized size with wider log
         self.root.title("MacroManager")
-        width = self.config.get("window_width", 1050)
-        height = self.config.get("window_height", 620)
+        width = self.config.get("window_width", 1000)
+        height = self.config.get("window_height", 820)
 
         # Center window on screen
         screen_width = self.root.winfo_screenwidth()
@@ -59,7 +59,7 @@ class MainWindow:
         self.root.geometry(f"{width}x{height}+{x}+{y}")
 
         self.root.resizable(True, True)
-        self.root.minsize(900, 550)
+        self.root.minsize(550, 820)
 
         # Store colors from centralized theme
         self.colors = COLORS
@@ -327,50 +327,64 @@ class MainWindow:
         self.loop_checkbox.grid(row=4, column=0, columnspan=2,
                                 sticky=tk.W, padx=3, pady=3)
 
-        # Loop count frame
-        loop_count_frame = ttk.Frame(combined_frame)
+        # Loop count frame - modernized
+        loop_count_frame = tk.Frame(combined_frame, bg=self.colors['bg_dark'])
         loop_count_frame.grid(
             row=4, column=2, columnspan=2, sticky=tk.W, padx=3, pady=3)
 
         ttk.Label(loop_count_frame, text="Repeat:",
-                  font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(0, 5))
+                  font=('Segoe UI', 9, 'bold')).pack(side=tk.LEFT, padx=(0, 8))
 
-        # Loop count spinbox
+        # Loop count spinbox - modernized with better styling
         self.loop_count_var = tk.StringVar(value="∞")
-        self.loop_count_spinbox = tk.Spinbox(
+
+        # Create a frame for the spinbox to add border
+        spinbox_container = tk.Frame(
             loop_count_frame,
+            bg=self.colors['bg_light'],
+            highlightthickness=1,
+            highlightbackground=self.colors['border'],
+            highlightcolor=self.colors['accent']
+        )
+        spinbox_container.pack(side=tk.LEFT, padx=(0, 8))
+
+        self.loop_count_spinbox = tk.Spinbox(
+            spinbox_container,
             from_=1,
             to=9999,
-            width=8,
+            width=6,
             textvariable=self.loop_count_var,
-            font=('Segoe UI', 9),
+            font=('Segoe UI', 10, 'bold'),
             bg=self.colors['bg_light'],
             fg=self.colors['fg_primary'],
-            buttonbackground=self.colors['bg_medium'],
+            buttonbackground=self.colors['accent'],
             insertbackground=self.colors['fg_primary'],
             relief='flat',
+            borderwidth=0,
             validate='key',
             validatecommand=(self.root.register(
                 self._validate_loop_count), '%P')
         )
-        self.loop_count_spinbox.pack(side=tk.LEFT, padx=(0, 5))
+        self.loop_count_spinbox.pack(padx=2, pady=2)
 
-        # Infinite checkbox
+        # Infinite button - modernized as toggle button
         self.loop_infinite_var = tk.BooleanVar(value=True)
-        self.loop_infinite_checkbox = tk.Checkbutton(
+        self.loop_infinite_button = tk.Button(
             loop_count_frame,
-            text="∞",
-            variable=self.loop_infinite_var,
+            text="∞ Infinite",
             command=self._on_infinite_changed,
-            font=('Segoe UI', 9),
-            bg=self.colors['bg_dark'],
-            fg=self.colors['fg_primary'],
-            selectcolor=self.colors['bg_light'],
-            activebackground=self.colors['bg_dark'],
-            activeforeground=self.colors['fg_primary'],
-            cursor='hand2'
+            font=('Segoe UI', 9, 'bold'),
+            bg=self.colors['accent'],
+            fg='#ffffff',
+            activebackground=self.colors['accent_hover'],
+            activeforeground='#ffffff',
+            borderwidth=0,
+            relief='flat',
+            cursor='hand2',
+            padx=12,
+            pady=5
         )
-        self.loop_infinite_checkbox.pack(side=tk.LEFT)
+        self.loop_infinite_button.pack(side=tk.LEFT)
 
         # Initialize spinbox state
         self._on_infinite_changed()
@@ -496,7 +510,7 @@ class MainWindow:
             pady=8
         )
         self.change_keys_button.grid(
-            row=0, column=0, padx=3, sticky=(tk.W, tk.E))
+            row=1, column=0, padx=3, sticky=(tk.W, tk.E))
 
         # Check updates button
         self.check_updates_button = tk.Button(
@@ -508,7 +522,81 @@ class MainWindow:
             pady=8
         )
         self.check_updates_button.grid(
-            row=0, column=1, padx=3, sticky=(tk.W, tk.E))
+            row=1, column=1, padx=3, sticky=(tk.W, tk.E))
+
+        # Update channel selection frame - modernized
+        update_channel_frame = tk.Frame(
+            tertiary_frame, bg=self.colors['bg_dark'])
+        update_channel_frame.grid(
+            row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(8, 0), padx=3)
+        update_channel_frame.grid_columnconfigure(1, weight=1)
+
+        ttk.Label(update_channel_frame, text="Update Channel:",
+                  font=('Segoe UI', 9, 'bold')).grid(
+            row=0, column=0, sticky=tk.W, padx=(0, 10))
+
+        # Create a container for channel buttons
+        channel_buttons_frame = tk.Frame(
+            update_channel_frame, bg=self.colors['bg_dark'])
+        channel_buttons_frame.grid(row=0, column=1, sticky=tk.W)
+
+        # Store channel selection
+        self.update_channel_var = tk.StringVar(
+            value=self.config.get("update_channel", "stable"))
+
+        # Create modern toggle buttons for channels
+        self.channel_buttons = {}
+        channels = [
+            ("stable", "🛡 Stable", "Official releases only"),
+            ("beta", "🧪 Beta", "Includes pre-releases")
+        ]
+
+        for idx, (channel, label, tooltip) in enumerate(channels):
+            btn = tk.Button(
+                channel_buttons_frame,
+                text=label,
+                command=lambda c=channel: self._on_channel_button_clicked(c),
+                font=('Segoe UI', 9, 'bold'),
+                cursor='hand2',
+                relief='flat',
+                borderwidth=0,
+                padx=12,
+                pady=6
+            )
+            btn.grid(row=0, column=idx, padx=(0, 5))
+            self.channel_buttons[channel] = btn
+
+            # Add tooltip on hover
+            btn.bind('<Enter>', lambda e,
+                     t=tooltip: self._show_channel_tooltip(e, t))
+            btn.bind('<Leave>', lambda e: self._hide_channel_tooltip())
+
+        # Update button states
+        self._update_channel_button_states()
+
+        # Channel info label with modern styling
+        channel_info = tk.Label(
+            update_channel_frame,
+            text="ⓘ",
+            font=('Segoe UI', 11, 'bold'),
+            bg=self.colors['bg_dark'],
+            fg=self.colors['accent'],
+            cursor='hand2'
+        )
+        channel_info.grid(row=0, column=2, padx=(8, 0))
+        channel_info.bind("<Button-1>", lambda e: messagebox.showinfo(
+            "Update Channels",
+            "🛡 Stable Channel:\n"
+            "• Only official stable releases\n"
+            "• Recommended for most users\n"
+            "• Maximum stability\n\n"
+            "🧪 Beta Channel:\n"
+            "• Includes pre-releases\n"
+            "• Early access to new features\n"
+            "• May contain bugs or incomplete features\n"
+            "• For testing and feedback",
+            parent=self.root
+        ))
 
     def _create_log_frame(self, parent: ttk.Frame, row: int, column: int = 0) -> None:
         """Create the log output frame."""
@@ -571,18 +659,118 @@ class MainWindow:
         # Enable/disable loop count controls
         state = tk.NORMAL if is_looping else tk.DISABLED
         self.loop_count_spinbox.config(state=state)
-        self.loop_infinite_checkbox.config(state=state)
+        self.loop_infinite_button.config(state=state)
 
     def _on_infinite_changed(self) -> None:
-        """Handle infinite loop checkbox state change."""
+        """Handle infinite loop toggle button state change."""
         is_infinite = self.loop_infinite_var.get()
+
+        # Toggle the state
+        self.loop_infinite_var.set(not is_infinite)
+        is_infinite = not is_infinite
 
         if is_infinite:
             self.loop_count_var.set("∞")
-            self.loop_count_spinbox.config(state=tk.DISABLED)
+            self.loop_count_spinbox.config(
+                state=tk.DISABLED)
+            # Update button appearance for active state
+            self.loop_infinite_button.config(
+                bg=self.colors['accent'],
+                fg='#ffffff',
+                text="∞ Infinite"
+            )
         else:
             self.loop_count_var.set("1")
             self.loop_count_spinbox.config(state=tk.NORMAL)
+            # Update button appearance for inactive state
+            self.loop_infinite_button.config(
+                bg=self.colors['bg_light'],
+                fg=self.colors['fg_primary'],
+                text="∞ Infinite"
+            )
+
+    def _on_update_channel_changed(self, event=None) -> None:
+        """Handle update channel selection change."""
+        channel = self.update_channel_var.get()
+        self.config.set("update_channel", channel)
+        logger.info(f"Update channel changed to: {channel}")
+
+    def _on_channel_button_clicked(self, channel: str) -> None:
+        """Handle channel button click."""
+        # If switching to beta, show confirmation dialog
+        if channel == "beta" and self.update_channel_var.get() != "beta":
+            result = messagebox.askyesno(
+                "Switch to Beta Channel?",
+                "⚠️ Important Notes About Beta Channel:\n\n"
+                "• Beta releases may contain bugs or incomplete features\n"
+                "• Updates may be unstable or cause unexpected behavior\n"
+                "• Not recommended for critical use cases\n"
+                "• You can switch back to Stable channel at any time\n\n"
+                "Are you sure you want to switch to the Beta channel?",
+                icon='warning',
+                parent=self.root
+            )
+
+            if not result:
+                # User cancelled, don't change channel
+                logger.info("User cancelled switch to beta channel")
+                return
+
+        # Update the channel
+        self.update_channel_var.set(channel)
+        self._update_channel_button_states()
+        self._on_update_channel_changed()
+
+    def _update_channel_button_states(self) -> None:
+        """Update the visual state of channel buttons based on selection."""
+        selected = self.update_channel_var.get()
+
+        for channel, btn in self.channel_buttons.items():
+            if channel == selected:
+                # Selected state - accent color
+                btn.config(
+                    bg=self.colors['accent'],
+                    fg='#ffffff',
+                    activebackground=self.colors['accent_hover'],
+                    activeforeground='#ffffff'
+                )
+            else:
+                # Unselected state - muted
+                btn.config(
+                    bg=self.colors['bg_light'],
+                    fg=self.colors['fg_secondary'],
+                    activebackground=self.colors['bg_medium'],
+                    activeforeground=self.colors['fg_primary']
+                )
+
+    def _show_channel_tooltip(self, event, text: str) -> None:
+        """Show tooltip for channel button."""
+        # Create tooltip if it doesn't exist
+        if not hasattr(self, '_channel_tooltip'):
+            self._channel_tooltip = tk.Label(
+                self.root,
+                text=text,
+                font=('Segoe UI', 8),
+                bg=self.colors['bg_medium'],
+                fg=self.colors['fg_primary'],
+                relief='solid',
+                borderwidth=1,
+                padx=8,
+                pady=4
+            )
+        else:
+            self._channel_tooltip.config(text=text)
+
+        # Position tooltip near cursor
+        x = event.widget.winfo_rootx() + event.widget.winfo_width() // 2
+        y = event.widget.winfo_rooty() - 30
+        self._channel_tooltip.place(x=x, y=y)
+        self._channel_tooltip.lift()
+
+    def _hide_channel_tooltip(self) -> None:
+        """Hide channel tooltip."""
+        if hasattr(self, '_channel_tooltip'):
+            self._channel_tooltip.place_forget()
 
     def _get_loop_settings(self) -> tuple:
         """Get current loop settings from GUI.

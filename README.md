@@ -25,12 +25,12 @@ A customizable macro tool for automating repetitive actions in games. Easy to se
 
 ## 🚀 Quick Setup
 
-### Option 1: Download as ZIP (No Git Required)
+### Option 1: Download Latest Release (Recommended)
 
-1. **Download the repository**
+1. **Download the latest release**
 
-   - Click the green **"Code"** button at the top of this page
-   - Select **"Download ZIP"**
+   - Go to the [Latest Release](https://github.com/panteLx/MacroManager/releases/latest)
+   - Under Assets, download the Source code (ZIP) file
    - Extract the ZIP file to a folder of your choice (e.g., `C:\MacroManager`)
 
 2. **Run the app**

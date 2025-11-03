@@ -242,7 +242,7 @@ class MacroManagerApp:
                     # We need to call it through cmd.exe to properly execute the .bat file
                     DETACHED_PROCESS = 0x00000008
                     subprocess.Popen(
-                        ['cmd.exe', '/c', 'start', '', str(batch_file)],
+                        ['cmd.exe', '/c', str(batch_file)],
                         creationflags=DETACHED_PROCESS,
                         close_fds=True,
                         cwd=str(batch_file.parent)

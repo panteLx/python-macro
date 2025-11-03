@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://i.imgur.com/KHImMPw.png" alt="MacroManager Logo"/>
+  <img src="https://i.imgur.com/6DKKSHa.png" alt="MacroManager Logo"/>
 </div>
 
 # MacroManager

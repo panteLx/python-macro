@@ -663,11 +663,9 @@ class MainWindow:
 
     def _on_infinite_changed(self) -> None:
         """Handle infinite loop toggle button state change."""
-        is_infinite = self.loop_infinite_var.get()
-
         # Toggle the state
-        self.loop_infinite_var.set(not is_infinite)
-        is_infinite = not is_infinite
+        is_infinite = not self.loop_infinite_var.get()
+        self.loop_infinite_var.set(is_infinite)
 
         if is_infinite:
             self.loop_count_var.set("∞")

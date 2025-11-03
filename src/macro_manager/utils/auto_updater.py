@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 GITHUB_OWNER = "panteLx"
 GITHUB_REPO = "MacroManager"
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
-CURRENT_VERSION_FILE = Path(__file__).parent.parent.parent.parent / "VERSION"
+CURRENT_VERSION_FILE = Path(__file__).resolve(
+).parent.parent.parent.parent / "VERSION"
 
 
 def get_current_version() -> str:
@@ -274,7 +275,8 @@ def download_and_install_update(download_url: str, version: str) -> bool:
             source_dir = extracted_folders[0]
 
             # Get the application root directory
-            app_root = Path(__file__).parent.parent.parent.parent
+            # Use resolved absolute path to work when run as admin
+            app_root = Path(__file__).resolve().parent.parent.parent.parent
 
             logger.info(f"Installing update to {app_root}")
 
@@ -424,7 +426,7 @@ def download_and_install_update(download_url: str, version: str) -> bool:
 def cleanup_backups() -> None:
     """Clean up backup files created during update."""
     try:
-        app_root = Path(__file__).parent.parent.parent.parent
+        app_root = Path(__file__).resolve().parent.parent.parent.parent
         for item in app_root.glob("*.backup"):
             if item.is_dir():
                 shutil.rmtree(item)

@@ -4,6 +4,10 @@ echo   MacroManager
 echo ========================================
 echo.
 
+REM Change to the directory where this batch file is located
+REM This ensures the app works correctly even when run as administrator
+cd /d "%~dp0"
+
 REM Check Python installation
 where python >nul 2>nul
 if %errorlevel% neq 0 (

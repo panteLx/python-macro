@@ -39,7 +39,8 @@ class MacroManagerApp:
 
         # Set up logging
         # logs directory is now in the base directory (parent of src)
-        log_dir = Path(__file__).parent.parent.parent.parent / "logs"
+        # Use absolute path to work when run as admin
+        log_dir = Path(__file__).resolve().parent.parent.parent.parent / "logs"
         log_dir.mkdir(exist_ok=True)
         setup_logging(
             log_level=self.config.get("log_level", "INFO"),
@@ -230,8 +231,8 @@ class MacroManagerApp:
 
             # Restart using the batch file if on Windows
             if sys.platform == "win32":
-                batch_file = Path(
-                    __file__).parent.parent.parent.parent / "start_macromanager.bat"
+                batch_file = Path(__file__).resolve(
+                ).parent.parent.parent.parent / "start_macromanager.bat"
                 if batch_file.exists():
                     # Close the current application first
                     self.root.destroy()

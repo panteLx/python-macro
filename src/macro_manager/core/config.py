@@ -31,10 +31,11 @@ class Config:
         """
         if config_dir is None:
             # Default to config directory in project root
-            self.config_dir = Path(
-                __file__).parent.parent.parent.parent / "config"
+            # Use absolute path based on this file's location to work when run as admin
+            self.config_dir = Path(__file__).resolve(
+            ).parent.parent.parent.parent / "config"
         else:
-            self.config_dir = Path(config_dir)
+            self.config_dir = Path(config_dir).resolve()
 
         self.config_dir.mkdir(parents=True, exist_ok=True)
         self.config_file = self.config_dir / "macro_config.json"

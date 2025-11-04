@@ -1,11 +1,11 @@
 {
-  "name": "[PREBUILT] Battlefield 6 Liberation Peak",
-  "description": "Liberation Peak AFK Macro for Battlefield 6 that automates capturing objectives. Portal Code: YWVXU - Tutorial: https://youtu.be/TTv9BSTzFTg?si=fdGpfcFno4Y9w3cI&t=61",
+  "name": "[PREBUILT] Battlefield 6 Liberation Peak - Portal: Z29Z1",
+  "description": "Capture the first point in Liberation Peak. Neutralize A & B on the second point. Run macro while you're standing at the blue door on point B. Portal Code: Z29Z1 - Tutorial: http://y2u.be/TTv9BSTzFTg",
   "actions": [
     {
       "type": "keyhold",
-      "key": "w",
-      "duration": 7
+      "key": "s",
+      "duration": 4
     },
     {
       "type": "keypress",
@@ -37,12 +37,12 @@
     },
     {
       "type": "sleep",
-      "delay": 30
+      "delay": 45
     },
     {
       "type": "keyhold",
-      "key": "s",
-      "duration": 7
+      "key": "w",
+      "duration": 4
     },
     {
       "type": "keypress",
@@ -74,7 +74,7 @@
     },
     {
       "type": "sleep",
-      "delay": 30
+      "delay": 45
     }
   ],
   "loop": true,

@@ -1,0 +1,16 @@
+{
+  "name": "[PREBUILT] Battlefield 6 Space Bar - Portal: YRV4A",
+  "description": "Macro presses SPACE every 5 seconds to ensure that the player stays active. Portal Code: YRV4A",
+  "actions": [
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 5
+    }
+  ],
+  "loop": true,
+  "loop_count": 1
+}

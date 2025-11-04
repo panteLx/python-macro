@@ -1,0 +1,82 @@
+{
+  "name": "[PREBUILT] Battlefield 6 Liberation Peak - Portal: YWVXU",
+  "description": "Capture the first point in Liberation Peak. Neutralize A & B on the second point. Throw two deployable covers in a triangle shape on point A. Run macro while you're standing in the middle of that triangle on point A. Portal Code: YWVXU - Tutorial: http://y2u.be/TTv9BSTzFTg",
+  "actions": [
+    {
+      "type": "keyhold",
+      "key": "w",
+      "duration": 7
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keyhold",
+      "key": "s",
+      "duration": 7
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    },
+    {
+      "type": "keypress",
+      "key": "space"
+    },
+    {
+      "type": "sleep",
+      "delay": 30
+    }
+  ],
+  "loop": true,
+  "loop_count": null
+}

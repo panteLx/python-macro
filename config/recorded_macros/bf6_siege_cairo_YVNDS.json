@@ -1,6 +1,6 @@
 {
-  "name": "[PREBUILT] Battlefield 6 Siege of Cairo",
-  "description": "Siege of Cairo AFK Macro for Battlefield 6 that automates capturing objectives. Portal Code: YVNDS - Tutorial: https://youtu.be/LH_Gj87xodI?si=GJvNM4reqZoQxJ7f&t=161",
+  "name": "[PREBUILT] Battlefield 6 Siege of Cairo - Portal: YVNDS",
+  "description": "Neutralize A & B points at Siege of Cairo. Destroy the motorcycles at the A point and open the door at the B point. Run macro while you're standing on the A point at the blue wagon, facing the staircase. Portal Code: YVNDS - Tutorial: http://y2u.be/LH_Gj87xodI",
   "actions": [
     {
       "type": "keyhold",

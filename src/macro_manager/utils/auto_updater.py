@@ -497,11 +497,7 @@ def download_and_install_update(download_url: str, version: str, is_second_pass:
                         logger.info(
                             f"Updated prebuilt macro: {macro_file.name}")
 
-            # Check if we need to run macro cleanup for migration BEFORE saving new version
-            # This happens when updating from versions before the macro cleanup was added
-            old_version = get_current_version()
-
-            # Save new version
+            # Save new version (do this BEFORE second pass so new code sees new version)
             save_version(version)
 
             # Reinstall pip requirements
@@ -512,47 +508,32 @@ def download_and_install_update(download_url: str, version: str, is_second_pass:
 
             logger.info("Update installed successfully!")
 
-            # If this is the first pass, trigger a second update to run with the new code
+            # Run second pass: re-import and run the update again with NEW code
+            # This ensures the new cleanup logic runs even if old code didn't have it
             if not is_second_pass:
-                logger.info(
-                    "Triggering second pass to ensure new code runs cleanup...")
+                logger.info("Running second pass with newly installed code...")
 
-                # Re-run the update with the source directory we already have
-                # This time using is_second_pass=True to avoid infinite loop
                 try:
-                    # Call the cleanup and macro installation that should be in the NEW code
-                    # We do this manually since we can't reload the Python module
-                    recorded_macros_dir = app_root / "config" / "recorded_macros"
-                    if recorded_macros_dir.exists():
-                        # Delete old macros
-                        deleted_count = 0
-                        for pattern in ["bf6_*.json", "_prebuilt__*.json"]:
-                            for macro_file in recorded_macros_dir.glob(pattern):
-                                try:
-                                    macro_file.unlink()
-                                    logger.info(
-                                        f"Deleted old macro in second pass: {macro_file.name}")
-                                    deleted_count += 1
-                                except Exception as e:
-                                    logger.warning(
-                                        f"Could not delete {macro_file.name}: {e}")
+                    # Reload the auto_updater module to get the new code
+                    import sys
+                    import importlib
 
-                        if deleted_count > 0:
-                            logger.info(
-                                f"Second pass: deleted {deleted_count} old macro(s)")
+                    # Remove module from cache
+                    if 'macro_manager.utils.auto_updater' in sys.modules:
+                        del sys.modules['macro_manager.utils.auto_updater']
 
-                        # Copy new prebuilt macros from the source
-                        recorded_macros_source = source_dir / "config" / "recorded_macros"
-                        if recorded_macros_source.exists():
-                            for macro_file in recorded_macros_source.glob("_prebuilt__*.json"):
-                                dest_macro = recorded_macros_dir / macro_file.name
-                                shutil.copy2(macro_file, dest_macro)
-                                logger.info(
-                                    f"Installed new prebuilt macro: {macro_file.name}")
+                    # Re-import with new code
+                    from macro_manager.utils import auto_updater as new_module
 
-                        logger.info("Second pass cleanup completed!")
+                    # Call the update function again with the NEW code
+                    # Pass is_second_pass=True to prevent infinite recursion
+                    logger.info("Calling update with newly installed code...")
+                    new_module.download_and_install_update(
+                        download_url, version, is_second_pass=True)
+                    logger.info("Second pass completed!")
+
                 except Exception as e:
-                    logger.warning(f"Second pass cleanup failed: {e}")
+                    logger.warning(f"Second pass failed (not critical): {e}")
 
             return True
 

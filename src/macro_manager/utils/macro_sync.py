@@ -221,6 +221,8 @@ def sync_prebuilt_macros(macros_dir: Path) -> bool:
         else:
             logger.warning(
                 "No macros downloaded successfully - skipping cleanup of old macros")
+            # Return False to indicate sync failure
+            return False
 
         # Log summary
         if added_count > 0 or updated_count > 0 or removed_count > 0:
@@ -236,5 +238,5 @@ def sync_prebuilt_macros(macros_dir: Path) -> bool:
 
     except Exception as e:
         logger.error(f"Failed to sync prebuilt macros: {e}", exc_info=True)
-        # Don't fail app launch if sync fails
-        return True
+        # Return False to indicate sync failure
+        return False

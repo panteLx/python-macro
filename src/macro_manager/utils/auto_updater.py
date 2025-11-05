@@ -441,7 +441,7 @@ def download_and_install_update(download_url: str, version: str) -> bool:
 
                 logger.info(f"Updated {item_name}")
 
-            # Handle config directory - only update bf6_*.json macros and macro_config.json
+            # Handle config directory - only update _prebuilt__*.json macros and macro_config.json
             for item_name in config_items_to_update:
                 source_item = source_dir / item_name
                 dest_item = app_root / item_name

@@ -121,8 +121,8 @@ class MacroManagerApp:
                     # Show success message
                     show_update_success(self.root)
 
-                    # Restart the application
-                    self._restart_application()
+                    # Close the application
+                    self._close_application()
                 else:
                     show_update_error(self.root)
 
@@ -196,8 +196,8 @@ class MacroManagerApp:
                     # Show success message
                     show_update_success(self.root)
 
-                    # Restart the application
-                    self._restart_application()
+                    # Close the application
+                    self._close_application()
                 else:
                     show_update_error(self.root)
 
@@ -224,51 +224,22 @@ class MacroManagerApp:
                 parent=self.root
             )
 
-    def _restart_application(self):
-        """Restart the application."""
+    def _close_application(self):
+        """Close the application after update."""
         try:
-            logger.info("Restarting application...")
+            logger.info("Closing application after update...")
 
-            # Get the path to the Python executable and script
-            python = sys.executable
-            script = sys.argv[0]
+            # Cleanup main window
+            self.main_window.cleanup()
 
-            # Restart using the batch file if on Windows
-            if sys.platform == "win32":
-                batch_file = Path(__file__).resolve(
-                ).parent.parent.parent.parent / "start_macromanager.bat"
-                if batch_file.exists():
-                    # Close the current application first
-                    self.root.destroy()
+            # Destroy root window
+            self.root.destroy()
 
-                    # Start the batch file using subprocess with DETACHED_PROCESS flag
-                    # This prevents the new process from inheriting handles and ensures clean separation
-                    # We need to call it through cmd.exe to properly execute the .bat file
-                    DETACHED_PROCESS = 0x00000008
-                    subprocess.Popen(
-                        ['cmd.exe', '/c', str(batch_file)],
-                        creationflags=DETACHED_PROCESS,
-                        close_fds=True,
-                        cwd=str(batch_file.parent)
-                    )
-
-                    # Exit the current process immediately
-                    sys.exit(0)
-                else:
-                    # Close the current application
-                    self.root.destroy()
-
-                    # Restart using Python directly
-                    os.execl(python, python, script, *sys.argv[1:])
-            else:
-                # Close the current application
-                self.root.destroy()
-
-                # Restart using Python directly
-                os.execl(python, python, script, *sys.argv[1:])
+            # Exit the application
+            sys.exit(0)
 
         except Exception as e:
-            logger.error(f"Failed to restart application: {e}", exc_info=True)
+            logger.error(f"Error closing application: {e}", exc_info=True)
             sys.exit(0)
 
     def run(self) -> None:

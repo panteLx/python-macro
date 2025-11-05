@@ -117,8 +117,8 @@ class UpdateDialog:
         # Info label
         info_label = tk.Label(
             content_frame,
-            text="⚠ The application will restart after updating.",
-            font=('Segoe UI', 9),
+            text="⚠ The application will close after updating. Please restart it manually.",
+            font=('Segoe UI', 11, 'bold'),
             bg=self.colors['bg_dark'],
             fg=self.colors['warning']
         )
@@ -253,7 +253,7 @@ def show_update_success(parent: tk.Tk):
     messagebox.showinfo(
         "Update Successful",
         "The update has been installed successfully!\n\n"
-        "The application will now restart.",
+        "The application will now close. Please restart it manually.",
         parent=parent
     )
 

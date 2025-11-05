@@ -5,8 +5,9 @@ import logging
 import os
 import subprocess
 import sys
+import threading
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 from pathlib import Path
 from typing import Optional
 
@@ -20,13 +21,98 @@ from macro_manager.ui.update_dialog import (
     show_update_success,
     show_update_error
 )
+from macro_manager.ui.theme import COLORS
 from macro_manager.utils.auto_updater import (
     check_for_updates,
     download_and_install_update,
     cleanup_backups
 )
+from macro_manager.utils.macro_sync import sync_prebuilt_macros
 
 logger = logging.getLogger(__name__)
+
+
+class SplashScreen:
+    """Splash screen with progress indicator for macro sync."""
+
+    def __init__(self, parent):
+        """Initialize the splash screen."""
+        self.window = tk.Toplevel(parent)
+        self.window.title("MacroManager")
+        self.window.overrideredirect(True)  # Remove window decorations
+
+        # Set size and center on screen
+        width = 400
+        height = 200
+        screen_width = self.window.winfo_screenwidth()
+        screen_height = self.window.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        self.window.geometry(f"{width}x{height}+{x}+{y}")
+
+        # Apply dark theme
+        self.window.configure(bg=COLORS['bg_dark'])
+
+        # Create content frame
+        content_frame = tk.Frame(self.window, bg=COLORS['bg_dark'])
+        content_frame.pack(expand=True, fill='both', padx=30, pady=30)
+
+        # Title
+        title_label = tk.Label(
+            content_frame,
+            text="MacroManager",
+            font=("Segoe UI", 20, "bold"),
+            fg=COLORS['fg_primary'],
+            bg=COLORS['bg_dark']
+        )
+        title_label.pack(pady=(0, 20))
+
+        # Status label
+        self.status_label = tk.Label(
+            content_frame,
+            text="Syncing prebuilt macros...",
+            font=("Segoe UI", 10),
+            fg=COLORS['fg_secondary'],
+            bg=COLORS['bg_dark']
+        )
+        self.status_label.pack(pady=(0, 15))
+
+        # Progress bar
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure(
+            "Splash.Horizontal.TProgressbar",
+            troughcolor=COLORS['bg_medium'],
+            background=COLORS['accent'],
+            bordercolor=COLORS['bg_dark'],
+            lightcolor=COLORS['accent'],
+            darkcolor=COLORS['accent']
+        )
+
+        self.progress = ttk.Progressbar(
+            content_frame,
+            style="Splash.Horizontal.TProgressbar",
+            mode='indeterminate',
+            length=300
+        )
+        self.progress.pack(pady=(0, 10))
+        self.progress.start(10)  # Start animation
+
+        # Make window stay on top
+        self.window.attributes('-topmost', True)
+
+        # Center the window
+        self.window.update_idletasks()
+
+    def update_status(self, text: str):
+        """Update the status text."""
+        self.status_label.config(text=text)
+        self.window.update()
+
+    def close(self):
+        """Close the splash screen."""
+        self.progress.stop()
+        self.window.destroy()
 
 
 class MacroManagerApp:
@@ -50,26 +136,63 @@ class MacroManagerApp:
 
         logger.info("Starting MacroManager application")
 
-        # Initialize macro storage
-        initialize_macro_storage(self.config.config_dir)
-
-        # Create root window
+        # Create root window (hidden initially)
         self.root = tk.Tk()
         self.root.title("MacroManager")
+        self.root.withdraw()  # Hide the main window
+
+        # Show splash screen
+        self.splash = SplashScreen(self.root)
+        self.root.update()
+
+        # Initialize macro storage
+        self.splash.update_status("Initializing macro storage...")
+        initialize_macro_storage(self.config.config_dir)
+
+        # Sync prebuilt macros from GitHub (blocking, but with progress indicator)
+        self.splash.update_status("Syncing prebuilt macros from GitHub...")
+        macros_dir = self.config.config_dir / "recorded_macros"
+
+        # Run sync in a separate thread but wait for completion
+        sync_complete = threading.Event()
+        sync_success = None
+
+        def sync_with_completion():
+            nonlocal sync_success
+            try:
+                sync_success = sync_prebuilt_macros(macros_dir)
+            except Exception as e:
+                sync_success = False
+                logger.error(
+                    f"Error syncing prebuilt macros: {e}", exc_info=True)
+            finally:
+                sync_complete.set()
+
+        sync_thread = threading.Thread(
+            target=sync_with_completion, daemon=True)
+        sync_thread.start()
+
+        # Wait for sync to complete while keeping UI responsive
+        while not sync_complete.is_set():
+            self.root.update()
+            sync_complete.wait(0.1)
+
+        # Close splash screen
+        self.splash.update_status("Loading main window...")
+        self.root.update()
 
         # Store update info to check after window is ready
         self.pending_update = None
-
-        # Configure root window geometry (small, off-screen initially)
-        self.root.geometry("1x1+0+0")
-        self.root.attributes('-alpha', 0.0)  # Make invisible
 
         # Check for updates (non-blocking)
         update_channel = self.config.get("update_channel", "stable")
         self.pending_update = check_for_updates(channel=update_channel)
 
-        # Restore window visibility and create main window
-        self.root.attributes('-alpha', 1.0)
+        # Close splash and show main window
+        self.splash.close()
+        self.root.deiconify()  # Show the main window
+
+        # Create main window
         self.main_window = MainWindow(self.root, self.config)
 
         # Set the update callback for manual update checks
@@ -78,9 +201,32 @@ class MacroManagerApp:
         # Set up cleanup on close
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+        # Show warning if sync failed
+        if sync_success is False:
+            self.root.after(100, self._show_sync_error_warning)
+
         # Schedule update check dialog after main loop starts
         if self.pending_update is not None:
             self.root.after(100, self._show_update_dialog)
+
+    def _show_sync_error_warning(self):
+        """Show a warning dialog if macro sync failed."""
+        try:
+            logger.info("Showing macro sync error warning to user")
+            messagebox.showwarning(
+                "Macro Sync Failed",
+                "Failed to sync prebuilt macros from GitHub.\n\n"
+                "Possible causes:\n"
+                "• Network connection issues\n"
+                "• GitHub is temporarily unavailable\n"
+                "• Download errors occurred\n\n"
+                "The application will continue with existing local macros. "
+                "You can try restarting the application later to sync again.",
+                parent=self.root
+            )
+        except Exception as e:
+            logger.error(
+                f"Error showing sync warning dialog: {e}", exc_info=True)
 
     def _show_update_dialog(self):
         """Show the update dialog after main window is ready."""
@@ -121,8 +267,8 @@ class MacroManagerApp:
                     # Show success message
                     show_update_success(self.root)
 
-                    # Restart the application
-                    self._restart_application()
+                    # Close the application
+                    self._close_application()
                 else:
                     show_update_error(self.root)
 
@@ -196,8 +342,8 @@ class MacroManagerApp:
                     # Show success message
                     show_update_success(self.root)
 
-                    # Restart the application
-                    self._restart_application()
+                    # Close the application
+                    self._close_application()
                 else:
                     show_update_error(self.root)
 
@@ -224,51 +370,22 @@ class MacroManagerApp:
                 parent=self.root
             )
 
-    def _restart_application(self):
-        """Restart the application."""
+    def _close_application(self):
+        """Close the application after update."""
         try:
-            logger.info("Restarting application...")
+            logger.info("Closing application after update...")
 
-            # Get the path to the Python executable and script
-            python = sys.executable
-            script = sys.argv[0]
+            # Cleanup main window
+            self.main_window.cleanup()
 
-            # Restart using the batch file if on Windows
-            if sys.platform == "win32":
-                batch_file = Path(__file__).resolve(
-                ).parent.parent.parent.parent / "start_macromanager.bat"
-                if batch_file.exists():
-                    # Close the current application first
-                    self.root.destroy()
+            # Destroy root window
+            self.root.destroy()
 
-                    # Start the batch file using subprocess with DETACHED_PROCESS flag
-                    # This prevents the new process from inheriting handles and ensures clean separation
-                    # We need to call it through cmd.exe to properly execute the .bat file
-                    DETACHED_PROCESS = 0x00000008
-                    subprocess.Popen(
-                        ['cmd.exe', '/c', str(batch_file)],
-                        creationflags=DETACHED_PROCESS,
-                        close_fds=True,
-                        cwd=str(batch_file.parent)
-                    )
-
-                    # Exit the current process immediately
-                    sys.exit(0)
-                else:
-                    # Close the current application
-                    self.root.destroy()
-
-                    # Restart using Python directly
-                    os.execl(python, python, script, *sys.argv[1:])
-            else:
-                # Close the current application
-                self.root.destroy()
-
-                # Restart using Python directly
-                os.execl(python, python, script, *sys.argv[1:])
+            # Exit the application
+            sys.exit(0)
 
         except Exception as e:
-            logger.error(f"Failed to restart application: {e}", exc_info=True)
+            logger.error(f"Error closing application: {e}", exc_info=True)
             sys.exit(0)
 
     def run(self) -> None:

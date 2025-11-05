@@ -309,19 +309,23 @@ def clean_directory_except(directory: Path, preserve_dirs: list) -> None:
             logger.warning(f"Could not remove {item}: {e}")
 
 
-def download_and_install_update(download_url: str, version: str) -> bool:
+def download_and_install_update(download_url: str, version: str, is_second_pass: bool = False) -> bool:
     """
     Download and install an update.
 
     Args:
         download_url: URL to download the update from
         version: Version being installed
+        is_second_pass: If True, this is the second pass of a double-update migration
 
     Returns:
         True if successful, False otherwise
     """
     try:
-        logger.info(f"Downloading update from {download_url}")
+        if is_second_pass:
+            logger.info(f"Running second pass update for migration cleanup...")
+        else:
+            logger.info(f"Downloading update from {download_url}")
 
         # Create temporary directory
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -493,6 +497,12 @@ def download_and_install_update(download_url: str, version: str) -> bool:
                         logger.info(
                             f"Updated prebuilt macro: {macro_file.name}")
 
+            # Check if we need to run macro cleanup for migration BEFORE saving new version
+            # This happens when updating from versions before the macro cleanup was added
+            old_version = get_current_version()
+            needs_migration = not is_second_pass and needs_migration_update(
+                version, old_version)
+
             # Save new version
             save_version(version)
 
@@ -503,10 +513,77 @@ def download_and_install_update(download_url: str, version: str) -> bool:
                     "Failed to reinstall requirements. Please run 'pip install -r requirements.txt' manually.")
 
             logger.info("Update installed successfully!")
+
+            # Run migration cleanup if needed
+            if needs_migration:
+                logger.info(
+                    "This update requires macro cleanup. Running cleanup now...")
+
+                # Run the cleanup directly (the new code is already installed)
+                recorded_macros_dir = app_root / "config" / "recorded_macros"
+                if recorded_macros_dir.exists():
+                    deleted_count = 0
+                    for pattern in ["bf6_*.json", "_prebuilt__*.json"]:
+                        for macro_file in recorded_macros_dir.glob(pattern):
+                            try:
+                                macro_file.unlink()
+                                logger.info(
+                                    f"Deleted old macro during migration: {macro_file.name}")
+                                deleted_count += 1
+                            except Exception as e:
+                                logger.warning(
+                                    f"Could not delete {macro_file.name}: {e}")
+
+                    if deleted_count > 0:
+                        logger.info(
+                            f"Migration cleanup: deleted {deleted_count} old macro(s)")
+
+                    # Now copy the new prebuilt macros from the source
+                    recorded_macros_source = source_dir / "config" / "recorded_macros"
+                    if recorded_macros_source.exists():
+                        for macro_file in recorded_macros_source.glob("_prebuilt__*.json"):
+                            dest_macro = recorded_macros_dir / macro_file.name
+                            shutil.copy2(macro_file, dest_macro)
+                            logger.info(
+                                f"Installed new prebuilt macro: {macro_file.name}")
+
+                    logger.info("Migration cleanup completed!")
+
             return True
 
     except Exception as e:
         logger.error(f"Failed to install update: {e}", exc_info=True)
+        return False
+
+
+def needs_migration_update(target_version: str, current_version: str) -> bool:
+    """
+    Check if updating to the target version requires a migration update.
+
+    Args:
+        target_version: The version being updated to
+        current_version: The current version before update
+
+    Returns:
+        True if macro cleanup is needed for migration
+    """
+    try:
+        # Define the version that introduced the macro cleanup feature
+        cleanup_feature_version = "1.4.1-beta.1"
+
+        # If current version is before the cleanup feature version
+        # AND we're updating to a version that has it, we need migration
+        if compare_versions(current_version, cleanup_feature_version) < 0:
+            if compare_versions(target_version, cleanup_feature_version) >= 0:
+                logger.info(
+                    f"Migration needed: updating from {current_version} to {target_version}"
+                )
+                return True
+
+        return False
+
+    except Exception as e:
+        logger.warning(f"Could not determine if migration needed: {e}")
         return False
 
 

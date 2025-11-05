@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # GitHub repository information
 GITHUB_OWNER = "panteLx"
 GITHUB_REPO = "MacroManager"
-GITHUB_RAW_URL = f"https://raw.githubusercontent.com/{GITHUB_OWNER}/{GITHUB_REPO}/main/config/recorded_macros"
+GITHUB_RAW_URL = f"https://raw.githubusercontent.com/{GITHUB_OWNER}/{GITHUB_REPO}/master/config/recorded_macros"
 
 
 def fetch_prebuilt_macro_list() -> Optional[List[str]]:
@@ -138,6 +138,7 @@ def sync_prebuilt_macros(macros_dir: Path) -> bool:
         added_count = 0
         removed_count = 0
         unchanged_count = 0
+        successful_downloads = 0
 
         # Get existing local prebuilt macros (new format)
         local_prebuilt_macros = {
@@ -145,7 +146,7 @@ def sync_prebuilt_macros(macros_dir: Path) -> bool:
             for f in macros_dir.glob('_prebuilt__*.json')
         }
 
-        # Also track old bf6_ macros for deletion
+        # Also track old bf6_ macros for deletion (only if sync succeeds)
         old_bf6_macros = list(macros_dir.glob('bf6_*.json'))
 
         # Download and update/add macros from GitHub
@@ -155,6 +156,9 @@ def sync_prebuilt_macros(macros_dir: Path) -> bool:
             if github_macro_data is None:
                 logger.warning(f"Skipping {filename} (download failed)")
                 continue
+
+            # Count successful downloads
+            successful_downloads += 1
 
             local_file = macros_dir / filename
 
@@ -194,23 +198,29 @@ def sync_prebuilt_macros(macros_dir: Path) -> bool:
             if filename in local_prebuilt_macros:
                 del local_prebuilt_macros[filename]
 
-        # Remove obsolete prebuilt macros
-        for filename, filepath in local_prebuilt_macros.items():
-            try:
-                filepath.unlink()
-                removed_count += 1
-                logger.info(f"Removed obsolete prebuilt macro: {filename}")
-            except Exception as e:
-                logger.warning(f"Failed to remove {filename}: {e}")
+        # Only remove obsolete macros if we successfully downloaded at least one macro
+        # This prevents deletion if GitHub is unavailable or all downloads fail
+        if successful_downloads > 0:
+            # Remove obsolete prebuilt macros
+            for filename, filepath in local_prebuilt_macros.items():
+                try:
+                    filepath.unlink()
+                    removed_count += 1
+                    logger.info(f"Removed obsolete prebuilt macro: {filename}")
+                except Exception as e:
+                    logger.warning(f"Failed to remove {filename}: {e}")
 
-        # Remove old bf6_ format macros
-        for filepath in old_bf6_macros:
-            try:
-                filepath.unlink()
-                removed_count += 1
-                logger.info(f"Removed old bf6_ macro: {filepath.name}")
-            except Exception as e:
-                logger.warning(f"Failed to remove {filepath.name}: {e}")
+            # Remove old bf6_ format macros
+            for filepath in old_bf6_macros:
+                try:
+                    filepath.unlink()
+                    removed_count += 1
+                    logger.info(f"Removed old bf6_ macro: {filepath.name}")
+                except Exception as e:
+                    logger.warning(f"Failed to remove {filepath.name}: {e}")
+        else:
+            logger.warning(
+                "No macros downloaded successfully - skipping cleanup of old macros")
 
         # Log summary
         if added_count > 0 or updated_count > 0 or removed_count > 0:

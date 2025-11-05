@@ -666,6 +666,11 @@ class MainWindow:
         # Toggle the state
         is_infinite = not self.loop_infinite_var.get()
         self.loop_infinite_var.set(is_infinite)
+        self._update_infinite_ui()
+
+    def _update_infinite_ui(self) -> None:
+        """Update the infinite loop UI based on current state without toggling."""
+        is_infinite = self.loop_infinite_var.get()
 
         if is_infinite:
             self.loop_count_var.set("∞")
@@ -678,7 +683,9 @@ class MainWindow:
                 text="∞ Infinite"
             )
         else:
-            self.loop_count_var.set("1")
+            # Only set to "1" if the current value is "∞"
+            if self.loop_count_var.get() == "∞":
+                self.loop_count_var.set("1")
             self.loop_count_spinbox.config(state=tk.NORMAL)
             # Update button appearance for inactive state
             self.loop_infinite_button.config(
@@ -820,14 +827,14 @@ class MainWindow:
 
             # Update UI state
             self._on_loop_changed()
-            self._on_infinite_changed()
+            self._update_infinite_ui()
         else:
             # Reset to defaults for non-recorded macros
             self.loop_var.set(True)
             self.loop_infinite_var.set(True)
             self.loop_count_var.set("∞")
             self._on_loop_changed()
-            self._on_infinite_changed()
+            self._update_infinite_ui()
 
     def set_key_bindings(self) -> None:
         """Set up keyboard shortcuts."""
@@ -907,7 +914,19 @@ class MainWindow:
         from macro_manager.macros.recorded_macro import RecordedMacro
         if isinstance(macro, RecordedMacro):
             loop, loop_count = self._get_loop_settings()
+
+            # Check if loop settings have changed
+            settings_changed = (
+                macro.loop != loop or macro.loop_count != loop_count)
+
+            # Apply the settings
             macro.set_loop(loop, loop_count)
+
+            # Save to JSON if settings changed
+            if settings_changed:
+                save_recorded_macro(macro)
+                logger.info(
+                    f"Saved updated loop settings for macro: {macro.name}")
 
             # Log the settings
             if not loop:

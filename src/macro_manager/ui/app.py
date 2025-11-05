@@ -25,6 +25,7 @@ from macro_manager.utils.auto_updater import (
     download_and_install_update,
     cleanup_backups
 )
+from macro_manager.utils.macro_sync import sync_prebuilt_macros
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,10 @@ class MacroManagerApp:
         )
 
         logger.info("Starting MacroManager application")
+
+        # Sync prebuilt macros from GitHub (before initializing storage)
+        macros_dir = self.config.config_dir / "recorded_macros"
+        sync_prebuilt_macros(macros_dir)
 
         # Initialize macro storage
         initialize_macro_storage(self.config.config_dir)

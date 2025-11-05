@@ -309,23 +309,19 @@ def clean_directory_except(directory: Path, preserve_dirs: list) -> None:
             logger.warning(f"Could not remove {item}: {e}")
 
 
-def download_and_install_update(download_url: str, version: str, is_second_pass: bool = False) -> bool:
+def download_and_install_update(download_url: str, version: str) -> bool:
     """
     Download and install an update.
 
     Args:
         download_url: URL to download the update from
         version: Version being installed
-        is_second_pass: If True, this is the second pass of a double-update migration
 
     Returns:
         True if successful, False otherwise
     """
     try:
-        if is_second_pass:
-            logger.info(f"Running second pass update for migration cleanup...")
-        else:
-            logger.info(f"Downloading update from {download_url}")
+        logger.info(f"Downloading update from {download_url}")
 
         # Create temporary directory
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -497,7 +493,7 @@ def download_and_install_update(download_url: str, version: str, is_second_pass:
                         logger.info(
                             f"Updated prebuilt macro: {macro_file.name}")
 
-            # Save new version (do this BEFORE second pass so new code sees new version)
+            # Save new version
             save_version(version)
 
             # Reinstall pip requirements
@@ -507,33 +503,6 @@ def download_and_install_update(download_url: str, version: str, is_second_pass:
                     "Failed to reinstall requirements. Please run 'pip install -r requirements.txt' manually.")
 
             logger.info("Update installed successfully!")
-
-            # Run second pass: re-import and run the update again with NEW code
-            # This ensures the new cleanup logic runs even if old code didn't have it
-            if not is_second_pass:
-                logger.info("Running second pass with newly installed code...")
-
-                try:
-                    # Reload the auto_updater module to get the new code
-                    import sys
-                    import importlib
-
-                    # Remove module from cache
-                    if 'macro_manager.utils.auto_updater' in sys.modules:
-                        del sys.modules['macro_manager.utils.auto_updater']
-
-                    # Re-import with new code
-                    from macro_manager.utils import auto_updater as new_module
-
-                    # Call the update function again with the NEW code
-                    # Pass is_second_pass=True to prevent infinite recursion
-                    logger.info("Calling update with newly installed code...")
-                    new_module.download_and_install_update(
-                        download_url, version, is_second_pass=True)
-                    logger.info("Second pass completed!")
-
-                except Exception as e:
-                    logger.warning(f"Second pass failed (not critical): {e}")
 
             return True
 

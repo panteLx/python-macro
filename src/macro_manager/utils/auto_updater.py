@@ -468,10 +468,10 @@ def download_and_install_update(download_url: str, version: str) -> bool:
                     shutil.copy2(config_json_source, config_json_dest)
                     logger.info("Updated macro_config.json")
 
-                # Copy all bf6_*.json macros from the update
+                # Copy all _prebuilt__*.json macros from the update
                 recorded_macros_source = source_item / "recorded_macros"
                 if recorded_macros_source.exists():
-                    for macro_file in recorded_macros_source.glob("bf6_*.json"):
+                    for macro_file in recorded_macros_source.glob("_prebuilt__*.json"):
                         dest_macro = recorded_macros_dest / macro_file.name
                         if dest_macro.exists():
                             backup_path = app_root / \

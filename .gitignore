@@ -70,7 +70,7 @@ logs/
 config/*
 !config/recorded_macros/
 config/recorded_macros/*
-!config/recorded_macros/bf6_*.json
+!config/recorded_macros/_prebuilt__*.json
 
 # Old structure (to be removed)
 app.py.old

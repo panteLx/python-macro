@@ -468,6 +468,17 @@ def download_and_install_update(download_url: str, version: str) -> bool:
                     shutil.copy2(config_json_source, config_json_dest)
                     logger.info("Updated macro_config.json")
 
+                # Delete any existing macros starting with bf6_ or _prebuilt__
+                for pattern in ["bf6_*.json", "_prebuilt__*.json"]:
+                    for existing_macro in recorded_macros_dest.glob(pattern):
+                        try:
+                            existing_macro.unlink()
+                            logger.info(
+                                f"Deleted old macro: {existing_macro.name}")
+                        except Exception as e:
+                            logger.warning(
+                                f"Could not delete {existing_macro.name}: {e}")
+
                 # Copy all _prebuilt__*.json macros from the update
                 recorded_macros_source = source_item / "recorded_macros"
                 if recorded_macros_source.exists():
